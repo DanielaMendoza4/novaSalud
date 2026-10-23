@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useAlertas } from '../hooks/useAlertas'
+import { useAlertas } from '../../hooks/useAlertas'
 import './AlertBell.css'
 
 /**

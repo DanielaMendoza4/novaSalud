@@ -1,19 +1,25 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import {
-  Layout,
-  Card,
-  Modal,
-  Badge,
-  Button,
-  Table,
-  SearchBar,
-  Toast
-} from './complementos'
-import { AuthProvider, useAuth } from './context/AuthContext'
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useNavigate
+} from 'react-router-dom'
+import Layout from './components/Layout/Layout'
+import Card from './components/Card/Card'
+import Modal from './components/Modal/Modal'
+import Badge from './components/Badge/Badge'
+import Button from './components/Button/Button'
+import Table from './components/Table/Table'
+import SearchBar from './components/SearchBar/SearchBar'
+import Toast from './components/Toast/Toast'
+import Login from './components/Login/Login'
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
+import { AuthProvider, useAuth } from './context'
 import './App.css'
 
-// Vista del Dashboard con uso de complementos según trabajoPlan.pdf
+// Vista del Dashboard con uso de componentes según trabajoPlan.pdf
 function DashboardDemo() {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [modalType, setModalType] = useState('pos') // 'pos' | 'producto'
@@ -260,53 +266,58 @@ function DashboardDemo() {
           />
         </div>
 
-        {/* Panel lateral: Catálogo de Complementos Creados */}
+        {/* Panel lateral: Catálogo de Componentes */}
         <div className="panel-card">
           <h3 className="dashboard-section-title">
-            <span>Carpeta /complementos</span>
+            <span>Carpeta /components</span>
           </h3>
           <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px 0' }}>
-            Se han estructurado los componentes modulares y sus archivos CSS correspondientes según <code>trabajoPlan.pdf</code>:
+            Cada componente vive en su propia carpeta con su archivo <code>.jsx</code> y <code>.css</code>, siguiendo la arquitectura de minimarket y lo indicado en <code>trabajoPlan.pdf</code>:
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🧭 Navbar</strong> (<code>Navbar.jsx</code> + <code>Navbar.css</code>)
+              <strong>🔐 Login</strong> (<code>Login/Login.jsx</code> + <code>Login.css</code>)
+              <div style={{ color: '#64748b' }}>Acceso de usuario y administrador con sesión simulada.</div>
+            </div>
+
+            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
+              <strong>🧭 Navbar</strong> (<code>Navbar/Navbar.jsx</code> + <code>Navbar.css</code>)
               <div style={{ color: '#64748b' }}>Barra superior con buscador POS, datos de usuario y campana.</div>
             </div>
 
             <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>📑 Sidebar</strong> (<code>Sidebar.jsx</code> + <code>Sidebar.css</code>)
+              <strong>📑 Sidebar</strong> (<code>Sidebar/Sidebar.jsx</code> + <code>Sidebar.css</code>)
               <div style={{ color: '#64748b' }}>Menú lateral con módulos (Dashboard, POS, Inventario, etc.).</div>
             </div>
 
             <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🔔 AlertBell</strong> (<code>AlertBell.jsx</code> + <code>AlertBell.css</code>)
+              <strong>🔔 AlertBell</strong> (<code>AlertBell/AlertBell.jsx</code> + <code>AlertBell.css</code>)
               <div style={{ color: '#64748b' }}>Campana con contador dinámico y dropdown de alertas.</div>
             </div>
 
             <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🛡️ ProtectedRoute</strong> (<code>ProtectedRoute.jsx</code> + <code>ProtectedRoute.css</code>)
-              <div style={{ color: '#64748b' }}>Seguridad por roles conectada a AuthContext.</div>
+              <strong>🛡️ ProtectedRoute</strong> (<code>ProtectedRoute/ProtectedRoute.jsx</code> + <code>ProtectedRoute.css</code>)
+              <div style={{ color: '#64748b' }}>Seguridad por sesión y roles conectada a AuthContext.</div>
             </div>
 
             <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🖼️ Layout</strong> (<code>Layout.jsx</code> + <code>Layout.css</code>)
+              <strong>🖼️ Layout</strong> (<code>Layout/Layout.jsx</code> + <code>Layout.css</code>)
               <div style={{ color: '#64748b' }}>Envoltorio responsivo con sidebar y navbar adaptables.</div>
             </div>
 
             <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>📋 Table & SearchBar</strong> (<code>Table</code> + <code>SearchBar</code>)
+              <strong>📋 Table & SearchBar</strong> (<code>Table/Table.jsx</code> + <code>SearchBar/SearchBar.jsx</code>)
               <div style={{ color: '#64748b' }}>Tabla responsiva y buscador optimizado con autofocus lector POS.</div>
             </div>
 
             <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>💬 Toast & Modal</strong> (<code>Toast</code> + <code>Modal</code>)
+              <strong>💬 Toast & Modal</strong> (<code>Toast/Toast.jsx</code> + <code>Modal/Modal.jsx</code>)
               <div style={{ color: '#64748b' }}>Notificaciones flotantes y diálogos modales accesibles.</div>
             </div>
 
             <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>✨ Card, Badge & Button</strong>
+              <strong>✨ Card, Badge & Button</strong> (<code>Card</code>, <code>Badge</code>, <code>Button</code>)
               <div style={{ color: '#64748b' }}>Elementos atómicos de interfaz con estilos propios.</div>
             </div>
           </div>
@@ -425,63 +436,89 @@ function PlaceholderPage({ title, icon, description }) {
 }
 
 function AppContent() {
-  const { usuario } = useAuth()
+  const { usuario, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <Routes>
-      <Route element={<Layout user={usuario} />}>
+      <Route path="/login" element={<Login />} />
+
+      <Route
+        element={
+          <ProtectedRoute>
+            <Layout user={usuario} onLogout={handleLogout} />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/" element={<DashboardDemo />} />
         <Route
           path="/ventas"
           element={
-            <PlaceholderPage
-              title="Punto de Venta (POS)"
-              icon="🛒"
-              description="Búsqueda rápida por código de barras, carrito de compras y emisión de comprobantes."
-            />
+            <ProtectedRoute roles={['admin', 'vendedor']}>
+              <PlaceholderPage
+                title="Punto de Venta (POS)"
+                icon="🛒"
+                description="Búsqueda rápida por código de barras, carrito de compras y emisión de comprobantes."
+              />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/inventario"
           element={
-            <PlaceholderPage
-              title="Gestión de Inventario"
-              icon="💊"
-              description="CRUD de productos, control de lotes, fechas de vencimiento y registro de ingresos."
-            />
+            <ProtectedRoute roles={['admin', 'almacen']}>
+              <PlaceholderPage
+                title="Gestión de Inventario"
+                icon="💊"
+                description="CRUD de productos, control de lotes, fechas de vencimiento y registro de ingresos."
+              />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/clientes"
           element={
-            <PlaceholderPage
-              title="Directorio de Clientes"
-              icon="👥"
-              description="Búsqueda por DNI, registro de fidelización y seguimiento del historial de compras."
-            />
+            <ProtectedRoute roles={['admin', 'vendedor']}>
+              <PlaceholderPage
+                title="Directorio de Clientes"
+                icon="👥"
+                description="Búsqueda por DNI, registro de fidelización y seguimiento del historial de compras."
+              />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/alertas"
           element={
-            <PlaceholderPage
-              title="Centro de Alertas de Farmacia"
-              icon="🔔"
-              description="Monitoreo de quiebres de stock, medicamentos próximos a caducar y reposiciones pendientes."
-            />
+            <ProtectedRoute roles={['admin', 'vendedor', 'almacen']}>
+              <PlaceholderPage
+                title="Centro de Alertas de Farmacia"
+                icon="🔔"
+                description="Monitoreo de quiebres de stock, medicamentos próximos a caducar y reposiciones pendientes."
+              />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/reportes"
           element={
-            <PlaceholderPage
-              title="Reportes y Estadísticas"
-              icon="📈"
-              description="Métricas de ventas, rotación de productos, márgenes y exportación a formatos CSV y PDF."
-            />
+            <ProtectedRoute roles={['admin']}>
+              <PlaceholderPage
+                title="Reportes y Estadísticas"
+                icon="📈"
+                description="Métricas de ventas, rotación de productos, márgenes y exportación a formatos CSV y PDF."
+              />
+            </ProtectedRoute>
           }
         />
       </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

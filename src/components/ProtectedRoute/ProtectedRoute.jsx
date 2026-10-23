@@ -1,5 +1,5 @@
 import { Navigate, Link } from 'react-router-dom'
-import { useAuth } from '../context'
+import { useAuth } from '../../context'
 import './ProtectedRoute.css'
 
 /**
@@ -14,16 +14,8 @@ export default function ProtectedRoute({
   fallbackTo = '/'
 }) {
   const auth = useAuth()
-  // Prioriza prop user, luego auth context, luego localStorage
-  let currentUser = user !== undefined ? user : auth?.usuario
-  if (!currentUser) {
-    try {
-      const stored = localStorage.getItem('usuario')
-      currentUser = stored ? JSON.parse(stored) : null
-    } catch {
-      currentUser = null
-    }
-  }
+  // Prioriza la prop user; si no se envía, usa la sesión del AuthProvider.
+  const currentUser = user !== undefined ? user : auth?.usuario
 
   // 1. Si no hay usuario autenticado, redirigir a Login
   if (!currentUser) {

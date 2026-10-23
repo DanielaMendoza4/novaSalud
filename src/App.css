@@ -110,18 +110,3 @@
 .quick-table tr:hover td {
   background: #f8fafc;
 }
-
-.complementos-showcase {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 24px;
-  margin-top: 12px;
-}
-
-.complementos-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
