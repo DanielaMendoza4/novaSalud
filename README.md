@@ -23,7 +23,7 @@ El desarrollo sigue los lineamientos del documento [`Documento_de_trabajo/trabaj
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Arquitectura](#arquitectura)
 - [Rutas de la aplicación](#rutas-de-la-aplicación)
-- [Autenticación y roles](#autenticación-y-roles)
+- [Inicio de sesión y roles](#inicio-de-sesión-y-roles)
 - [Catálogo de componentes](#catálogo-de-componentes)
 - [Hooks](#hooks)
 - [Sistema de diseño](#sistema-de-diseño)
@@ -270,6 +270,24 @@ app-novasalud/
 
 > Las carpetas `node_modules/` y `dist/` están excluidas del repositorio mediante `.gitignore`.
 
+### Mapa de archivos y responsabilidades
+
+| Ruta | Responsabilidad |
+| --- | --- |
+| `src/main.jsx` | Punto de entrada: monta React, carga Bootstrap y los estilos globales. |
+| `src/App.jsx` | Dashboard demo, definición de rutas, guards y composición general. |
+| `src/App.css` | Estilos del dashboard (banner, KPIs y grilla de dos columnas). |
+| `src/index.css` | Tokens de diseño, reset, tipografía y estilos globales. |
+| `src/components/<Nombre>/` | Componentes de interfaz; cada uno con su `.jsx` y `.css`. |
+| `src/components/Login/` | Pantalla de acceso con pestañas Usuario/Administrador. |
+| `src/components/ProtectedRoute/` | Guard de sesión y roles para las rutas. |
+| `src/context/` | `AuthContext`, `AuthProvider`, `useAuth` y su barrel. |
+| `src/data/usuarios.js` | Cuentas demo y tipos de acceso. |
+| `src/hooks/useAlertas.js` | Alertas simuladas de stock y vencimientos. |
+| `public/` | Recursos estáticos (`favicon.svg`, `icons.svg`). |
+| `Documento_de_trabajo/` | Plan de trabajo original en PDF. |
+| `package.json`, `vite.config.js`, `.oxlintrc.json` | Configuración de dependencias, build y lint. |
+
 ### Organización de componentes
 
 Cada componente vive en su propia carpeta dentro de `src/components`, junto a su hoja de estilos:
@@ -327,6 +345,28 @@ main.jsx
 
 `ProtectedRoute` envuelve el layout completo: sin sesión, cualquier ruta redirige a `/login`. Dentro del layout, cada ruta vuelve a usar `ProtectedRoute` con la lista de roles permitidos. `Layout` actúa como *layout route* y renderiza el contenido mediante `<Outlet />`.
 
+### Dependencias entre componentes
+
+```text
+App
+├── Login                          # /login (público)
+└── ProtectedRoute
+    └── Layout
+        ├── Sidebar                # menú filtrado por rol
+        ├── Navbar
+        │   └── AlertBell
+        │       └── useAlertas
+        └── Outlet
+            └── DashboardDemo
+                ├── Card
+                ├── Badge
+                ├── Button
+                ├── Table
+                ├── SearchBar
+                ├── Modal
+                └── Toast
+```
+
 ### Flujo de estado
 
 | Estado | Ubicación | Alcance |
@@ -334,6 +374,7 @@ main.jsx
 | Productos y filtro de búsqueda | `DashboardDemo` en `App.jsx` | Local al dashboard |
 | Modales POS / producto | `DashboardDemo` en `App.jsx` | Local al dashboard |
 | Notificaciones toast | `DashboardDemo` en `App.jsx` | Local al dashboard |
+| Formulario de login | `Login` | Local a la vista |
 | Alertas | `useAlertas` (usado por `AlertBell`) | Local a la campana |
 | Sesión de usuario | `AuthProvider` | Global (contexto + `localStorage`) |
 | Sidebar móvil / colapsado | `Layout` | Local al layout |
@@ -359,7 +400,7 @@ La navegación se realiza con `Link` y `NavLink` de React Router. Los enlaces de
 
 ---
 
-## Autenticación y roles
+## Inicio de sesión y roles
 
 ### Flujo de inicio de sesión
 
@@ -429,6 +470,10 @@ Todos los componentes viven en `src/components/<Nombre>/` y se importan directam
 ```jsx
 import Layout from './components/Layout/Layout'
 import Login from './components/Login/Login'
+import Navbar from './components/Navbar/Navbar'
+import Sidebar from './components/Sidebar/Sidebar'
+import AlertBell from './components/AlertBell/AlertBell'
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import Card from './components/Card/Card'
 import Modal from './components/Modal/Modal'
 import Badge from './components/Badge/Badge'
@@ -721,6 +766,7 @@ Definidos en `src/index.css` mediante variables CSS:
 ### Accesibilidad
 
 - Botones con `aria-label` en acciones icónicas.
+- Login con pestañas `role="tab"`, `aria-selected` y etiquetas asociadas a cada campo.
 - Modal con `role="dialog"`, `aria-modal`, cierre con Escape y bloqueo del scroll del body.
 - Campana de alertas con `aria-expanded` y `aria-label` dinámico.
 - Búsqueda con autofocus para facilitar el uso de lectores de código de barras.
@@ -886,7 +932,7 @@ Y ajusta el `RewriteBase` del `.htaccess` al mismo subdirectorio.
 
 - **Componentes:** PascalCase y una carpeta por componente: `src/components/MiComponente/MiComponente.jsx` + `MiComponente.css`.
 - **Estilos:** el CSS vive en la misma carpeta del componente y se importa desde su `.jsx`.
-- **Importaciones:** usa rutas directas (`./components/Navbar/Navbar`); no hay barrels de componentes ni árbol `complementos`.
+- **Importaciones:** usa rutas directas (`./components/Navbar/Navbar`); no hay barrels de componentes ni rutas duplicadas.
 - **Clases CSS:** prefijo `novasalud-` para componentes globales y nombres descriptivos para el layout y el login.
 - **Tokens:** usa las variables de `src/index.css` en lugar de valores de color duplicados.
 - **Idioma:** textos de interfaz y comentarios en español.
