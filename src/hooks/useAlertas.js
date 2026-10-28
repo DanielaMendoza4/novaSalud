@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useDatosOpcionales } from '../context/useDatos'
 
 /**
  * Hook useAlertas: Manejo de alertas en tiempo real según Paso 10 de trabajoPlan.pdf
  */
 export function useAlertas() {
+  const datosCompartidos = useDatosOpcionales()
   const [alertas, setAlertas] = useState([
     {
       id: 1,
@@ -31,6 +33,8 @@ export function useAlertas() {
     }
   ])
   const [nuevaAlerta, setNuevaAlerta] = useState(null)
+
+  if (datosCompartidos) return datosCompartidos
 
   const agregarAlerta = (alerta) => {
     setAlertas((prev) => [alerta, ...prev])

@@ -1,3 +1,5 @@
 export { AuthContext, default } from './AuthContext'
 export { AuthProvider } from './AuthProvider'
 export { useAuth } from './useAuth'
+export { DatosProvider } from './DatosContext.jsx'
+export { useDatos, useDatosOpcionales } from './useDatos'
