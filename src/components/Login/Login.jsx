@@ -1,64 +1,52 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context'
-import { tiposAcceso, usuariosDemo } from '../../data/usuarios'
-import Button from '../Button/Button'
 import './Login.css'
 
-const CURRENT_YEAR = new Date().getFullYear()
+import logo from '../../assets/LOGO.jpeg';
 
-/**
- * Login de Nova Salud con dos tipos de acceso:
- * - Usuario: rol vendedor (operación de ventas y clientes).
- * - Administrador: rol admin (acceso completo).
- * Las credenciales son simuladas y viven en src/data/usuarios.js.
- */
+// Icons inline (solo CSS class login__icon, sin dependencias externas)
+const CheckIcon = () => (
+  <svg className="login__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="10" cy="10" r="8" /><path d="M6.5 10.2l2.4 2.4 4.6-5" />
+  </svg>
+);
+
+const LockIcon = () => (
+  <svg className="login__icon login__icon--sm" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="7" width="10" height="7" rx="2" /><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+  </svg>
+);
+
+const FEATURES = [
+  { title: 'Stock', text: 'Control en tiempo real' },
+  { title: 'Vencimientos', text: 'Alertas anticipadas' },
+  { title: 'Quiebres', text: 'Reposición a tiempo' },
+];
+
 export default function Login() {
   const { usuario, login } = useAuth()
   const navigate = useNavigate()
-
-  const [tipoAcceso, setTipoAcceso] = useState('usuario')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [mostrarPassword, setMostrarPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const accesoActivo =
-    tiposAcceso.find((tipo) => tipo.id === tipoAcceso) ?? tiposAcceso[0]
-  const cuentaDemo = usuariosDemo.find(
-    (cuenta) => cuenta.rol === accesoActivo.rol
-  )
-
-  if (usuario) {
-    return <Navigate to="/" replace />
-  }
-
-  const cambiarAcceso = (id) => {
-    setTipoAcceso(id)
-    setError('')
-  }
-
-  const usarCredencialesDemo = () => {
-    if (!cuentaDemo) return
-    setEmail(cuentaDemo.email)
-    setPassword(cuentaDemo.password)
-    setError('')
-  }
+  if (usuario) return <Navigate to="/" replace />
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
-
     if (!email.trim() || !password) {
       setError('Ingresa tu correo y contraseña para continuar.')
       return
     }
-
     setLoading(true)
-
     try {
-      await login({ email, password, rol: accesoActivo.rol })
+      await login({ email, password })
       navigate('/', { replace: true })
     } catch (loginError) {
       setError(loginError.message || 'No se pudo iniciar sesión.')
@@ -68,207 +56,71 @@ export default function Login() {
   }
 
   return (
-    <div className="login-page">
-      <aside className="login-brand-panel">
-        <div className="login-brand-top">
-          <div className="login-logo">
-            <span className="login-logo-cross">+</span>
-            <div>
-              <strong>Nova Salud</strong>
-              <small>Farmacia &amp; Botica</small>
-            </div>
-          </div>
-
-          <span className="login-brand-badge">Sistema integral</span>
+    <main className="login">
+      <section className="login__brand">
+        <div className="login__logo">
+          <img className="login__logo-img" src={logo} alt="Nova Salud Botica" />
         </div>
 
-        <div className="login-brand-copy">
-          <p className="login-eyebrow">Panel de gestión farmacéutica</p>
-          <h2>
-            Tu botica, <em>organizada</em> y bajo control.
-          </h2>
-          <p>
-            Inventario, punto de venta, alertas de vencimiento y reportes en una
-            sola plataforma pensada para el día a día de tu farmacia.
-          </p>
+        <p className="login__headline">
+          Inventario claro.
+          <span className="login__rotator">
+            <span>Ventas ágiles.</span>
+            <span aria-hidden="true">Stock al día.</span>
+            <span aria-hidden="true">Cero quiebres.</span>
+          </span>
+        </p>
 
-          <ul className="login-feature-list">
-            <li>
-              <span className="login-feature-icon">📦</span>
-              Control de stock y lotes en tiempo real
+        <ul className="login__cards">
+          {FEATURES.map((f) => (
+            <li className="login__card" key={f.title}>
+              <span className="login__card-icon"><CheckIcon /></span>
+              <strong>{f.title}</strong>
+              <span>{f.text}</span>
             </li>
-            <li>
-              <span className="login-feature-icon">🔔</span>
-              Alertas de quiebre y próximos vencimientos
-            </li>
-            <li>
-              <span className="login-feature-icon">🛒</span>
-              Punto de venta rápido con lector de códigos
-            </li>
-          </ul>
-        </div>
+          ))}
+        </ul>
+      </section>
 
-        <div className="login-brand-footer">
-          <span className="login-status-dot" />
-          Sistema disponible · Botica Central
-        </div>
-      </aside>
+      <div className="login__divider" aria-hidden="true" />
 
-      <main className="login-form-panel">
-        <div className="login-mobile-brand">
-          <div className="login-logo login-logo-compact">
-            <span className="login-logo-cross">+</span>
-            <div>
-              <strong>Nova Salud</strong>
-              <small>Farmacia &amp; Botica</small>
-            </div>
-          </div>
-        </div>
+      <section className="login__panel">
+        <div className="login__form-card">
+          <p className="login__eyebrow">ACCESO AL SISTEMA</p>
+          <h1 className="login__title">Bienvenido de vuelta</h1>
+          <p className="login__subtitle">Ingresa tus credenciales para continuar.</p>
 
-        <div className="login-card">
-          <header className="login-card-header">
-            <span className="login-eyebrow">Acceso al sistema</span>
-            <h1>Bienvenido de vuelta</h1>
-            <p>Selecciona tu tipo de acceso e inicia sesión.</p>
-          </header>
-
-          <div className="login-tabs" role="tablist" aria-label="Tipo de acceso">
-            {tiposAcceso.map((tipo) => (
-              <button
-                key={tipo.id}
-                type="button"
-                role="tab"
-                aria-selected={tipoAcceso === tipo.id}
-                className={`login-tab ${
-                  tipoAcceso === tipo.id ? 'active' : ''
-                }`}
-                onClick={() => cambiarAcceso(tipo.id)}
-              >
-                <span className="login-tab-icon">
-                  {tipo.id === 'admin' ? '🛡️' : '👤'}
-                </span>
-                {tipo.etiqueta}
-              </button>
-            ))}
-          </div>
-
-          <p className="login-access-description">{accesoActivo.descripcion}</p>
-
-          <form className="login-form" onSubmit={handleSubmit} noValidate>
-            <div className="login-field">
-              <label htmlFor="login-email">Correo electrónico</label>
-              <div className="login-input-wrapper">
-                <svg
-                  className="login-input-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  aria-hidden="true"
-                >
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="m3 7 9 6 9-6" />
-                </svg>
-                <input
-                  id="login-email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder={
-                    accesoActivo.rol === 'admin'
-                      ? 'admin@novasalud.pe'
-                      : 'vendedor@novasalud.pe'
-                  }
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  disabled={loading}
-                />
-              </div>
+          <form className="login__form" onSubmit={handleSubmit} noValidate>
+            <div className="login__field">
+              <label className="login__label" htmlFor="login-email">Correo electrónico</label>
+              <input className="login__input" id="login-email" type="email" autoComplete="username"
+                     placeholder="vendedor@novasalud.pe" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
 
-            <div className="login-field">
-              <label htmlFor="login-password">Contraseña</label>
-              <div className="login-input-wrapper">
-                <svg
-                  className="login-input-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  aria-hidden="true"
-                >
-                  <rect x="4" y="10" width="16" height="10" rx="2" />
-                  <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                </svg>
-                <input
-                  id="login-password"
-                  type={mostrarPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="Ingresa tu contraseña"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  className="login-password-toggle"
-                  onClick={() => setMostrarPassword((visible) => !visible)}
-                  aria-label={
-                    mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
-                  }
-                >
-                  {mostrarPassword ? 'Ocultar' : 'Mostrar'}
+            <div className="login__field">
+              <label className="login__label" htmlFor="login-password">Contraseña</label>
+              <div className="login__pass">
+                <input className="login__input login__input--pass" id="login-password"
+                       type={showPassword ? 'text' : 'password'} autoComplete="current-password"
+                     placeholder="Ingresa tu contraseña" value={password} onChange={e => setPassword(e.target.value)} />
+                <button type="button" className="login__toggle"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                  {showPassword ? 'Ocultar' : 'Mostrar'}
                 </button>
               </div>
             </div>
 
-            {error && (
-              <div className="login-error" role="alert">
-                <span aria-hidden="true">!</span>
-                {error}
-              </div>
-            )}
+            {error && <p className="login__error" role="alert">{error}</p>}
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              fullWidth
-              loading={loading}
-            >
-              Iniciar sesión
-            </Button>
+            <button type="submit" className="login__submit" disabled={loading}>
+              {loading ? 'Ingresando…' : 'Iniciar sesión'}
+            </button>
           </form>
 
-          <div className="login-demo-card">
-            <div className="login-demo-header">
-              <span className="login-demo-badge">Demo</span>
-              <span>Credenciales de demostración</span>
-            </div>
-            <div className="login-demo-credentials">
-              <code>{cuentaDemo?.email}</code>
-              <span>·</span>
-              <code>{cuentaDemo?.password}</code>
-            </div>
-            <button
-              type="button"
-              className="login-demo-button"
-              onClick={usarCredencialesDemo}
-              disabled={loading}
-            >
-              Autocompletar credenciales
-            </button>
-          </div>
-
-          <p className="login-security-note">
-            🔒 Sesión simulada para fines académicos. La contraseña no se
-            almacena en el navegador.
-          </p>
+          <p className="login__secure"><LockIcon /> Acceso seguro para el personal de la botica</p>
         </div>
-
-        <footer className="login-footer">
-          © {CURRENT_YEAR} Nova Salud — Sistema Integral de Gestión Farmacéutica
-        </footer>
-      </main>
-    </div>
+      </section>
+    </main>
   )
 }

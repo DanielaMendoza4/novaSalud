@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
     return leerUsuarioGuardado()
   })
 
-  const login = async ({ email, password, rol }) => {
+  const login = async ({ email, password }) => {
     // Pequeña espera para mostrar el estado de carga del formulario.
     await new Promise((resolve) => setTimeout(resolve, 450))
 
@@ -44,12 +44,6 @@ export function AuthProvider({ children }) {
 
     if (!cuenta || cuenta.password !== password) {
       throw new Error('Correo o contraseña incorrectos.')
-    }
-
-    if (cuenta.rol !== rol) {
-      throw new Error(
-        'Esta cuenta no corresponde al tipo de acceso seleccionado.'
-      )
     }
 
     const sesion = {
