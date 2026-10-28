@@ -59,6 +59,9 @@ Nova Salud es el frontend de un sistema integral de gestión farmacéutica. La a
 - Dashboard con banner principal, tarjetas KPI y tabla de inventario.
 - Login con pestañas de **Usuario** y **Administrador**, validación de credenciales y sesión persistente.
 - Protección de rutas por sesión y por rol, además del filtrado del menú lateral.
+- POS de ventas con carrito, control de stock, comprobantes, medios de pago e historial por trabajador.
+- Directorio de clientes con búsqueda, filtros, paginación, ficha de compras y administración restringida al rol admin.
+- Estado en memoria compartido para productos, clientes, ventas y alertas.
 - Búsqueda en tiempo real de medicamentos por nombre o código.
 - Modal reutilizable para:
   - Simulación de venta rápida (subtotal, IGV, total y método de pago).
@@ -73,7 +76,7 @@ Nova Salud es el frontend de un sistema integral de gestión farmacéutica. La a
 
 ### En desarrollo / solo demostración
 
-- Rutas de Ventas, Inventario, Clientes, Alertas y Reportes muestran páginas de marcador de posición.
+- Inventario, Alertas y Reportes todavía muestran páginas de marcador de posición.
 - No hay backend, API, base de datos ni pruebas automatizadas.
 - La autenticación es simulada en el cliente; las cuentas demo viven en `src/data/usuarios.js`.
 - La búsqueda de la barra superior solo imprime en consola.
@@ -250,9 +253,22 @@ app-novasalud/
 │   │   ├── AuthContext.js       # createContext + reexportaciones
 │   │   ├── AuthProvider.jsx     # Proveedor de sesión simulada
 │   │   ├── useAuth.js           # Hook de acceso al contexto
+│   │   ├── DatosContext.js      # Contexto de datos compartidos
+│   │   ├── DatosContext.jsx    # Proveedor de productos, clientes, ventas y alertas
+│   │   ├── useDatos.js          # Hooks de lectura del estado compartido
 │   │   └── index.js             # Barrel file del contexto
+│   ├── pages/
+│   │   ├── Ventas/
+│   │   │   ├── Ventas.jsx
+│   │   │   └── Ventas.css
+│   │   └── Clientes/
+│   │       ├── Clientes.jsx
+│   │       └── Clientes.css
 │   ├── data/
-│   │   └── usuarios.js          # Cuentas demo de acceso
+│   │   ├── usuarios.js          # Cuentas demo de acceso
+│   │   ├── productos.js         # Catálogo de productos
+│   │   ├── clientes.js          # Clientes de muestra
+│   │   └── ventas.js            # Ventas de muestra
 │   ├── hooks/
 │   │   └── useAlertas.js        # Estado y acciones de alertas
 │   ├── App.jsx                  # Vistas, rutas y composición principal
@@ -282,7 +298,13 @@ app-novasalud/
 | `src/components/Login/` | Pantalla de acceso con pestañas Usuario/Administrador. |
 | `src/components/ProtectedRoute/` | Guard de sesión y roles para las rutas. |
 | `src/context/` | `AuthContext`, `AuthProvider`, `useAuth` y su barrel. |
+| `src/context/DatosContext.jsx` | Estado compartido en memoria para productos, clientes, ventas y alertas. |
+| `src/pages/Ventas/` | POS, historial, comprobantes y operaciones del módulo de ventas. |
+| `src/pages/Clientes/` | Directorio, formulario de administración e historial por cliente. |
 | `src/data/usuarios.js` | Cuentas demo y tipos de acceso. |
+| `src/data/productos.js` | Catálogo de productos y atributos de venta. |
+| `src/data/clientes.js` | Clientes de demostración. |
+| `src/data/ventas.js` | Ventas de demostración. |
 | `src/hooks/useAlertas.js` | Alertas simuladas de stock y vencimientos. |
 | `public/` | Recursos estáticos (`favicon.svg`, `icons.svg`). |
 | `Documento_de_trabajo/` | Plan de trabajo original en PDF. |
@@ -330,17 +352,18 @@ import App from './App.jsx'
 main.jsx
 └── <App />
     └── <AuthProvider>              # Sesión simulada (localStorage)
-        └── <BrowserRouter>         # Enrutamiento SPA
-            └── <AppContent />
-                └── <Routes>
-                    ├── /login       → Login (público)
-                    └── <Route element={<ProtectedRoute><Layout ... /></ProtectedRoute>}>
-                        ├── /             → DashboardDemo
-                        ├── /ventas       → PlaceholderPage (admin, vendedor)
-                        ├── /inventario   → PlaceholderPage (admin, almacen)
-                        ├── /clientes     → PlaceholderPage (admin, vendedor)
-                        ├── /alertas      → PlaceholderPage (todos)
-                        └── /reportes     → PlaceholderPage (admin)
+        └── <DatosProvider>          # Productos, clientes, ventas y alertas
+            └── <BrowserRouter>      # Enrutamiento SPA
+                └── <AppContent />
+                    └── <Routes>
+                        ├── /login       → Login (público)
+                        └── <Route element={<ProtectedRoute><Layout ... /></ProtectedRoute>}>
+                            ├── /             → DashboardDemo
+                            ├── /ventas       → Ventas (admin, vendedor)
+                            ├── /inventario   → PlaceholderPage (admin, almacen)
+                            ├── /clientes     → Clientes (admin, vendedor)
+                            ├── /alertas      → PlaceholderPage (todos)
+                            └── /reportes     → PlaceholderPage (admin)
 ```
 
 `ProtectedRoute` envuelve el layout completo: sin sesión, cualquier ruta redirige a `/login`. Dentro del layout, cada ruta vuelve a usar `ProtectedRoute` con la lista de roles permitidos. `Layout` actúa como *layout route* y renderiza el contenido mediante `<Outlet />`.
@@ -357,29 +380,32 @@ App
         │   └── AlertBell
         │       └── useAlertas
         └── Outlet
-            └── DashboardDemo
-                ├── Card
-                ├── Badge
-                ├── Button
-                ├── Table
-                ├── SearchBar
-                ├── Modal
-                └── Toast
+            ├── DashboardDemo
+            │   ├── Card, Badge, Button
+            │   ├── Table y SearchBar
+            │   └── Modal y Toast
+            ├── Ventas
+            │   ├── POS e historial
+            │   └── Modal y Toast
+            └── Clientes
+                ├── Directorio y formulario admin
+                └── Modal y Toast
 ```
 
 ### Flujo de estado
 
 | Estado | Ubicación | Alcance |
 | --- | --- | --- |
-| Productos y filtro de búsqueda | `DashboardDemo` en `App.jsx` | Local al dashboard |
+| Productos, clientes, ventas y alertas | `DatosProvider` | Compartido en memoria |
+| Filtro de búsqueda del inventario demo | `DashboardDemo` en `App.jsx` | Local al dashboard |
 | Modales POS / producto | `DashboardDemo` en `App.jsx` | Local al dashboard |
 | Notificaciones toast | `DashboardDemo` en `App.jsx` | Local al dashboard |
 | Formulario de login | `Login` | Local a la vista |
-| Alertas | `useAlertas` (usado por `AlertBell`) | Local a la campana |
+| Alertas | `DatosProvider` mediante `useAlertas` | Compartido durante la sesión |
 | Sesión de usuario | `AuthProvider` | Global (contexto + `localStorage`) |
 | Sidebar móvil / colapsado | `Layout` | Local al layout |
 
-No hay estado global para productos ni alertas, ni sincronización con un servidor.
+`DatosProvider` comparte productos, clientes, ventas y alertas durante la sesión. Los cambios son simulados en memoria y no se sincronizan con un servidor.
 
 ---
 
@@ -389,9 +415,9 @@ No hay estado global para productos ni alertas, ni sincronización con un servid
 | --- | --- | --- | --- |
 | `/login` | `Login` | Público | Acceso de usuario y administrador. |
 | `/` | `DashboardDemo` | Todos | Panel principal con KPIs, inventario y modales. |
-| `/ventas` | `PlaceholderPage` | `admin`, `vendedor` | Módulo POS. |
+| `/ventas` | `Ventas` | `admin`, `vendedor` | POS e historial; el vendedor consulta únicamente sus ventas. |
 | `/inventario` | `PlaceholderPage` | `admin`, `almacen` | Gestión de inventario y lotes. |
-| `/clientes` | `PlaceholderPage` | `admin`, `vendedor` | Directorio y fidelización de clientes. |
+| `/clientes` | `Clientes` | `admin`, `vendedor` | Consulta para ambos roles; CRUD solo para admin. |
 | `/alertas` | `PlaceholderPage` | Todos | Centro de alertas de farmacia. |
 | `/reportes` | `PlaceholderPage` | `admin` | Reportes y estadísticas. |
 | `*` | — | — | Redirige a `/`; si no hay sesión, termina en `/login`. |
@@ -689,7 +715,7 @@ const [abierto, setAbierto] = useState(false)
 
 Archivo: `src/hooks/useAlertas.js`
 
-Gestiona una lista local de alertas con tres registros de demostración.
+Gestiona las alertas compartidas de la sesión cuando se usa dentro de `DatosProvider`, y conserva una lista local compatible si se utiliza fuera del proveedor.
 
 ```js
 const {
@@ -701,7 +727,7 @@ const {
 } = useAlertas()
 ```
 
-> `agregarAlerta` y `resolverAlerta` no están conectados a ninguna interfaz actualmente. El estado no se comparte entre componentes ni se persiste.
+> Las ventas pueden generar alertas de stock bajo o agotado. El estado no se persiste al recargar la página.
 
 ### `useAuth`
 
@@ -777,7 +803,7 @@ Definidos en `src/index.css` mediante variables CSS:
 
 ### Producto
 
-Definido en el arreglo `productosIniciales` de `App.jsx`:
+Definido en `src/data/productos.js` y compartido mediante `DatosProvider`:
 
 | Campo | Tipo | Ejemplo | Descripción |
 | --- | --- | --- | --- |
@@ -789,8 +815,13 @@ Definido en el arreglo `productosIniciales` de `App.jsx`:
 | `estado` | `string` | `stock_bajo` | `stock_bajo`, `por_vencer`, `agotado`, `normal`. |
 | `estadoLabel` | `string` | `Stock Bajo` | Texto para la insignia. |
 | `precio` | `number` | `8.50` | Precio de venta en soles. |
+| `fechaVencimiento` | `string` | `2027-06-30` | Fecha de vencimiento del producto. |
+| `categoria` | `string` | `Analgésicos` | Categoría del producto. |
+| `requiereReceta` | `boolean` | `false` | Exige verificar receta antes del cobro. |
 
-Productos de demostración: Paracetamol, Amoxicilina, Ibuprofeno, Loratadina y Omeprazol.
+Productos de demostración: Paracetamol, Amoxicilina, Ibuprofeno, Loratadina, Omeprazol y otros.
+
+Los clientes y las ventas de muestra están definidos en `src/data/clientes.js` y `src/data/ventas.js`. El POS rebaja el stock al completar una venta y lo devuelve al anularla; los niveles iguales o inferiores al mínimo generan una alerta compartida.
 
 ### Alerta
 
@@ -822,12 +853,12 @@ Las cuentas demo viven en `src/data/usuarios.js`. La sesión persistida excluye 
 ## Estado actual y limitaciones
 
 - **Sin backend:** todos los datos son locales y se pierden al recargar (excepto la sesión en `localStorage`).
-- **Rutas de módulos:** Ventas, Inventario, Clientes, Alertas y Reportes son páginas de marcador de posición.
+- **Rutas de módulos:** Inventario, Alertas y Reportes continúan como páginas de marcador de posición.
 - **Autenticación simulada:** las cuentas viven en `src/data/usuarios.js`; no hay API, JWT real ni validación en servidor.
 - **Credenciales demo visibles:** el login muestra las cuentas de prueba con fines académicos.
 - **Sesión local:** el token es simulado y se guarda en `localStorage`; cualquiera con acceso al navegador puede modificarlo.
 - **Búsqueda global:** el buscador de la navbar solo registra el término en consola.
-- **Alertas:** cada instancia de `AlertBell` maneja su propio estado; no hay sincronización global ni persistencia.
+- **Estado de negocio:** productos, clientes, ventas y alertas se comparten durante la sesión, pero no se persisten al recargar ni se sincronizan con backend.
 - **Favicon:** `index.html` referencia `/vite.svg`, archivo que no existe en `public/` (provoca un 404). Los archivos `favicon.svg` e `icons.svg` no se usan.
 - **Recursos sin uso:** `src/assets/hero.png`, `react.svg`, `vite.svg` y `public/icons.svg`.
 - **Sin pruebas:** no hay configuración de tests unitarios ni end-to-end.
@@ -838,10 +869,10 @@ Las cuentas demo viven en `src/data/usuarios.js`. La sesión persistida excluye 
 
 ## Próximos pasos
 
-1. Implementar las páginas reales de Ventas, Inventario, Clientes, Alertas y Reportes.
+1. Implementar las páginas reales de Inventario, Alertas y Reportes.
 2. Reemplazar los datos mock y la autenticación simulada por una API/backend con sesiones reales (JWT o cookies).
 3. Añadir “Recordarme”, recuperación de contraseña y cierre de sesión por inactividad.
-4. Elevar el estado de alertas a un contexto global o a un store.
+4. Persistir el estado de negocio y conectar el centro de alertas con un backend.
 5. Conectar la búsqueda global de la navbar.
 6. Añadir pruebas con Vitest y React Testing Library, incluyendo los flujos de login y roles.
 7. Corregir el favicon y limpiar los recursos no utilizados.

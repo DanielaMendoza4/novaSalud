@@ -1,0 +1,93 @@
+export const productosIniciales = [
+  {
+    id: 1,
+    codigo: 'MED-001',
+    nombre: 'Paracetamol 500mg Tab x100',
+    stock: 3,
+    minimo: 15,
+    estado: 'stock_bajo',
+    estadoLabel: 'Stock Bajo',
+    precio: 8.5,
+    fechaVencimiento: '2027-06-30',
+    categoria: 'Analgésicos',
+    requiereReceta: false
+  },
+  {
+    id: 2,
+    codigo: 'MED-002',
+    nombre: 'Amoxicilina 500mg Cap x20',
+    stock: 24,
+    minimo: 10,
+    estado: 'por_vencer',
+    estadoLabel: 'Vence en 18d',
+    precio: 18,
+    fechaVencimiento: '2026-11-14',
+    categoria: 'Antibióticos',
+    requiereReceta: true
+  },
+  {
+    id: 3,
+    codigo: 'MED-003',
+    nombre: 'Ibuprofeno 400mg Tab x50',
+    stock: 0,
+    minimo: 20,
+    estado: 'agotado',
+    estadoLabel: 'Agotado',
+    precio: 12,
+    fechaVencimiento: '2027-09-10',
+    categoria: 'Analgésicos',
+    requiereReceta: false
+  },
+  {
+    id: 4,
+    codigo: 'MED-004',
+    nombre: 'Loratadina 10mg Tab x30',
+    stock: 45,
+    minimo: 15,
+    estado: 'normal',
+    estadoLabel: 'Normal',
+    precio: 15.5,
+    fechaVencimiento: '2027-03-20',
+    categoria: 'Antialérgicos',
+    requiereReceta: false
+  },
+  {
+    id: 5,
+    codigo: 'MED-005',
+    nombre: 'Omeprazol 20mg Cap x30',
+    stock: 60,
+    minimo: 20,
+    estado: 'normal',
+    estadoLabel: 'Normal',
+    precio: 22,
+    fechaVencimiento: '2027-12-01',
+    categoria: 'Gastrointestinales',
+    requiereReceta: false
+  },
+  {
+    id: 6,
+    codigo: 'MED-006',
+    nombre: 'Azitromicina 500mg Tab x3',
+    stock: 12,
+    minimo: 8,
+    estado: 'normal',
+    estadoLabel: 'Normal',
+    precio: 16.8,
+    fechaVencimiento: '2026-10-20',
+    categoria: 'Antibióticos',
+    requiereReceta: true
+  },
+  {
+    id: 7,
+    codigo: 'MED-007',
+    nombre: 'Vitamina C 1g Efervescente x10',
+    stock: 32,
+    minimo: 10,
+    estado: 'normal',
+    estadoLabel: 'Normal',
+    precio: 13.9,
+    fechaVencimiento: '2027-08-15',
+    categoria: 'Vitaminas',
+    requiereReceta: false
+  }
+]

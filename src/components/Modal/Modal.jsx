@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import './Modal.css'
 
 /**
@@ -14,20 +14,47 @@ export default function Modal({
   children,
   footer
 }) {
+  const modalRef = useRef(null)
+
   // Manejo de la tecla Escape para cerrar
   useEffect(() => {
+    if (!isOpen) return undefined
+
+    const elementoAnterior = document.activeElement
+    const contenido = modalRef.current
+    const focoInicial =
+      contenido?.querySelector('input:not([disabled]), select:not([disabled]), textarea:not([disabled])') ||
+      contenido?.querySelector('button:not([disabled])')
+    focoInicial?.focus()
+
     function handleKeyDown(e) {
-      if (e.key === 'Escape' && isOpen && onClose) {
+      if (e.key === 'Escape' && onClose) {
         onClose()
+        return
+      }
+
+      if (e.key === 'Tab' && contenido) {
+        const elementos = [...contenido.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+        if (!elementos.length) return
+        const primero = elementos[0]
+        const ultimo = elementos[elementos.length - 1]
+        if (e.shiftKey && document.activeElement === primero) {
+          e.preventDefault()
+          ultimo.focus()
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+          e.preventDefault()
+          primero.focus()
+        }
       }
     }
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'hidden'
-    }
+    document.addEventListener('keydown', handleKeyDown)
+    const overflowAnterior = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = overflowAnterior
+      if (elementoAnterior instanceof HTMLElement) elementoAnterior.focus()
     }
   }, [isOpen, onClose])
 
@@ -41,12 +68,13 @@ export default function Modal({
       }}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="novasalud-modal-title"
     >
-      <div className={`novasalud-modal-window ${size}`}>
+      <div ref={modalRef} className={`novasalud-modal-window ${size}`}>
         <div className="modal-header">
           <div className="modal-title-group">
             {icon && <span style={{ fontSize: '20px' }}>{icon}</span>}
-            <h3 className="modal-title">{title}</h3>
+            <h3 id="novasalud-modal-title" className="modal-title">{title}</h3>
           </div>
           <button
             type="button"

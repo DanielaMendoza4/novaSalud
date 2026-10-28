@@ -1,0 +1,548 @@
+.novasalud-ventas {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: var(--text-main);
+}
+
+.novasalud-ventas-encabezado,
+.novasalud-ventas-titulo-panel,
+.novasalud-ventas-pestanas,
+.novasalud-ventas-botones,
+.novasalud-ventas-filtros,
+.novasalud-ventas-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.novasalud-ventas-encabezado h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.novasalud-ventas-encabezado p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.novasalud-ventas-eyebrow {
+  margin: 0 0 6px !important;
+  color: var(--primary) !important;
+  font-size: 11px !important;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.novasalud-ventas-pestanas {
+  justify-content: flex-start;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.novasalud-ventas-pestanas button {
+  margin-bottom: -1px;
+  padding: 12px 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.novasalud-ventas-pestanas button.activa {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+}
+
+.novasalud-ventas-contenido,
+.novasalud-ventas-busqueda {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.novasalud-ventas-panel {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.novasalud-ventas-titulo-panel {
+  margin-bottom: 16px;
+}
+
+.novasalud-ventas-titulo-panel h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.novasalud-ventas-titulo-panel p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.novasalud-ventas-atajo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.novasalud-ventas-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.novasalud-ventas-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: 0;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 13px;
+}
+
+.novasalud-ventas-input:focus,
+.novasalud-ventas-cantidad input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.novasalud-ventas-resultados,
+.novasalud-ventas-clientes-opciones {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  margin-top: 6px;
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.novasalud-ventas-resultado,
+.novasalud-ventas-clientes-opciones button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.novasalud-ventas-resultado:last-child,
+.novasalud-ventas-clientes-opciones button:last-of-type {
+  border-bottom: 0;
+}
+
+.novasalud-ventas-resultado:hover,
+.novasalud-ventas-clientes-opciones button:hover {
+  background: var(--bg-muted);
+}
+
+.novasalud-ventas-resultado:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.novasalud-ventas-resultado > span:first-child,
+.novasalud-ventas-resultado-derecha,
+.novasalud-ventas-clientes-opciones button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.novasalud-ventas-resultado small,
+.novasalud-ventas-clientes-opciones small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.novasalud-ventas-resultado-derecha {
+  align-items: flex-end !important;
+  flex-shrink: 0;
+}
+
+.novasalud-ventas-sin-resultados,
+.novasalud-ventas-clientes-opciones p {
+  margin: 0;
+  padding: 14px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.novasalud-ventas-tip {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.novasalud-ventas-cliente-selector {
+  position: relative;
+}
+
+.novasalud-ventas-cliente-selector .novasalud-ventas-clientes-opciones {
+  position: absolute;
+  inset: calc(100% + 4px) 0 auto;
+}
+
+.novasalud-ventas-campos-dobles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.novasalud-ventas-aviso {
+  margin: 10px 0 0;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--warning-light);
+  color: var(--text-main);
+  font-size: 11px;
+}
+
+.novasalud-ventas-vuelto {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 7px;
+  padding-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.novasalud-ventas-vuelto strong {
+  color: var(--primary);
+  font-size: 16px;
+}
+
+.novasalud-ventas-carrito-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.novasalud-ventas-carrito-vacio span {
+  margin-bottom: 8px;
+  font-size: 32px;
+}
+
+.novasalud-ventas-carrito-vacio strong {
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.novasalud-ventas-carrito-vacio p {
+  margin: 5px 0 0;
+  font-size: 12px;
+}
+
+.novasalud-ventas-lineas {
+  display: flex;
+  flex-direction: column;
+}
+
+.novasalud-ventas-linea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto 34px;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 13px;
+}
+
+.novasalud-ventas-producto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.novasalud-ventas-producto-info small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.novasalud-ventas-receta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.novasalud-ventas-receta input {
+  accent-color: var(--primary);
+}
+
+.novasalud-ventas-cantidad {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.novasalud-ventas-cantidad button,
+.novasalud-ventas-quitar {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.novasalud-ventas-cantidad input {
+  width: 48px;
+  height: 30px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font: inherit;
+  font-size: 12px;
+}
+
+.novasalud-ventas-quitar {
+  border-color: transparent;
+  color: var(--danger);
+  font-size: 22px;
+}
+
+.novasalud-ventas-totales {
+  width: min(100%, 380px);
+  margin: 16px 0 0 auto;
+}
+
+.novasalud-ventas-totales > div:not(.novasalud-ventas-botones) {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.novasalud-ventas-totales .novasalud-ventas-total {
+  margin-top: 5px;
+  padding-top: 12px !important;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-main) !important;
+  font-size: 17px !important;
+}
+
+.novasalud-ventas-totales .novasalud-ventas-total strong:last-child {
+  color: var(--primary);
+}
+
+.novasalud-ventas-botones {
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.novasalud-ventas-filtros {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.novasalud-ventas-filtros label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.novasalud-ventas-filtros input {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font: inherit;
+}
+
+.novasalud-ventas-acciones {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.novasalud-ventas-enlace {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.novasalud-ventas-enlace.peligro {
+  color: var(--danger);
+}
+
+.novasalud-ventas-comprobante {
+  color: var(--text-main);
+}
+
+.novasalud-ventas-comprobante-cabecera,
+.novasalud-ventas-comprobante-linea,
+.novasalud-ventas-detalle-items > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.novasalud-ventas-comprobante-cabecera strong {
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.novasalud-ventas-comprobante > p,
+.novasalud-ventas-detalle p {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.novasalud-ventas-comprobante-linea.total {
+  font-size: 16px;
+}
+
+.novasalud-ventas-comprobante-linea.total strong:last-child {
+  color: var(--primary);
+}
+
+.novasalud-ventas-detalle-items {
+  margin: 12px 0;
+  font-size: 12px;
+}
+
+.novasalud-ventas-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2500;
+  max-width: min(420px, calc(100vw - 32px));
+}
+
+@media (min-width: 1100px) {
+  .novasalud-ventas-busqueda {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .novasalud-ventas-encabezado {
+    align-items: flex-start;
+  }
+
+  .novasalud-ventas-encabezado h1 {
+    font-size: 23px;
+  }
+
+  .novasalud-ventas-panel {
+    padding: 15px;
+  }
+
+  .novasalud-ventas-linea {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .novasalud-ventas-linea > strong {
+    justify-self: end;
+  }
+
+  .novasalud-ventas-quitar {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .novasalud-ventas-campos-dobles {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .novasalud-ventas-botones {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .novasalud-ventas-botones button {
+    width: 100%;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .novasalud-modal-overlay,
+  .novasalud-modal-overlay * {
+    visibility: visible;
+  }
+
+  .novasalud-modal-overlay {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    background: var(--bg-surface);
+  }
+
+  .novasalud-modal-window {
+    max-height: none;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .modal-header,
+  .modal-footer {
+    display: none;
+  }
+}

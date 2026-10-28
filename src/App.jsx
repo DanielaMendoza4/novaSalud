@@ -16,70 +16,20 @@ import SearchBar from './components/SearchBar/SearchBar'
 import Toast from './components/Toast/Toast'
 import Login from './components/Login/Login'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
-import { AuthProvider, useAuth } from './context'
+import { AuthProvider, DatosProvider, useAuth, useDatos } from './context'
+import Ventas from './pages/Ventas/Ventas'
+import Clientes from './pages/Clientes/Clientes'
 import './App.css'
 
 // Vista del Dashboard con uso de componentes según trabajoPlan.pdf
 function DashboardDemo() {
+  const { productos } = useDatos()
   const [modalAbierto, setModalAbierto] = useState(false)
   const [modalType, setModalType] = useState('pos') // 'pos' | 'producto'
   const [busqueda, setBusqueda] = useState('')
   const [toastInfo, setToastInfo] = useState(null)
 
-  const productosIniciales = [
-    {
-      id: 1,
-      codigo: 'MED-001',
-      nombre: 'Paracetamol 500mg Tab x100',
-      stock: 3,
-      minimo: 15,
-      estado: 'stock_bajo',
-      estadoLabel: 'Stock Bajo',
-      precio: 8.50
-    },
-    {
-      id: 2,
-      codigo: 'MED-002',
-      nombre: 'Amoxicilina 500mg Cap x20',
-      stock: 24,
-      minimo: 10,
-      estado: 'por_vencer',
-      estadoLabel: 'Vence en 18d',
-      precio: 18.00
-    },
-    {
-      id: 3,
-      codigo: 'MED-003',
-      nombre: 'Ibuprofeno 400mg Tab x50',
-      stock: 0,
-      minimo: 20,
-      estado: 'agotado',
-      estadoLabel: 'Agotado',
-      precio: 12.00
-    },
-    {
-      id: 4,
-      codigo: 'MED-004',
-      nombre: 'Loratadina 10mg Tab x30',
-      stock: 45,
-      minimo: 15,
-      estado: 'normal',
-      estadoLabel: 'Normal',
-      precio: 15.50
-    },
-    {
-      id: 5,
-      codigo: 'MED-005',
-      nombre: 'Omeprazol 20mg Cap x30',
-      stock: 60,
-      minimo: 20,
-      estado: 'normal',
-      estadoLabel: 'Normal',
-      precio: 22.00
-    }
-  ]
-
-  const productosFiltrados = productosIniciales.filter(
+  const productosFiltrados = productos.filter(
     (p) =>
       p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.codigo.toLowerCase().includes(busqueda.toLowerCase())
@@ -261,7 +211,7 @@ function DashboardDemo() {
             data={productosFiltrados}
             emptyMessage="No se encontraron medicamentos con el término ingresado."
             renderFooter={(data) => (
-              <span>Mostrando {data.length} de {productosIniciales.length} medicamentos en inventario</span>
+              <span>Mostrando {data.length} de {productos.length} medicamentos en inventario</span>
             )}
           />
         </div>
@@ -460,11 +410,7 @@ function AppContent() {
           path="/ventas"
           element={
             <ProtectedRoute roles={['admin', 'vendedor']}>
-              <PlaceholderPage
-                title="Punto de Venta (POS)"
-                icon="🛒"
-                description="Búsqueda rápida por código de barras, carrito de compras y emisión de comprobantes."
-              />
+              <Ventas />
             </ProtectedRoute>
           }
         />
@@ -484,11 +430,7 @@ function AppContent() {
           path="/clientes"
           element={
             <ProtectedRoute roles={['admin', 'vendedor']}>
-              <PlaceholderPage
-                title="Directorio de Clientes"
-                icon="👥"
-                description="Búsqueda por DNI, registro de fidelización y seguimiento del historial de compras."
-              />
+              <Clientes />
             </ProtectedRoute>
           }
         />
@@ -526,9 +468,11 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <DatosProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </DatosProvider>
     </AuthProvider>
   )
 }
