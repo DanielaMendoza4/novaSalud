@@ -9,7 +9,7 @@ export default function Table({
   data = [],
   isLoading = false,
   emptyMessage = 'No se encontraron registros en el sistema',
-  emptyIcon = '📋',
+  emptyIcon = '',
   renderFooter,
   className = ''
 }) {

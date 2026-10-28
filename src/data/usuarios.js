@@ -13,10 +13,10 @@ export const usuariosDemo = [
   {
     id: 2,
     nombre: 'Lucía Torres',
-    email: 'vendedor@novasalud.pe',
-    password: 'usuario123',
-    rol: 'vendedor',
-    cargo: 'Vendedora',
+    email: 'trabajador@novasalud.pe',
+    password: 'trabajador123',
+    rol: 'trabajador',
+    cargo: 'Trabajadora',
     sucursal: 'Botica Central'
   }
 ]
@@ -24,9 +24,9 @@ export const usuariosDemo = [
 export const tiposAcceso = [
   {
     id: 'usuario',
-    etiqueta: 'Usuario',
+    etiqueta: 'Trabajador',
     descripcion: 'Acceso operativo para ventas y atención al cliente',
-    rol: 'vendedor'
+    rol: 'trabajador'
   },
   {
     id: 'admin',

@@ -15,7 +15,7 @@
 }
 
 .layout-main-wrapper.sidebar-collapsed {
-  margin-left: 80px;
+  margin-left: 0;
 }
 
 @media (max-width: 1024px) {

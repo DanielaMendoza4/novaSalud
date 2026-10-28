@@ -1,0 +1,6 @@
+.shared-field { display: grid; gap: 7px; }
+.shared-field label { color: #10231e; font-size: 12px; font-weight: 700; }
+.shared-field input, .shared-field select { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #c5d4cf; border-radius: 10px; background: #fff; color: #10231e; font: inherit; font-size: 13px; outline: 0; }
+.shared-field input:focus, .shared-field select:focus { border-color: #0d7f6f; box-shadow: 0 0 0 3px rgba(13, 127, 111, .14); }
+.shared-field-error { color: #b42318; font-size: 11px; }
+.shared-field-hint { color: #566a74; font-size: 11px; }

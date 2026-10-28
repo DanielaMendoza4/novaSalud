@@ -63,7 +63,7 @@ export default function SearchBar({
             }}
             title="Limpiar búsqueda"
           >
-            ✕
+            Limpiar
           </button>
         )}
         {showScannerBadge && (

@@ -1,4 +1,6 @@
 import { NavLink } from 'react-router-dom'
+import logoFarmacia from '../../assets/images/logo-farmacia.jpg'
+import { useAuth } from '../../context'
 import './Sidebar.css'
 
 /**
@@ -9,51 +11,50 @@ export default function Sidebar({
   isOpen = false,
   onClose,
   isCollapsed = false,
-  onToggleCollapse,
-  userRole = 'admin',
   alertCount = 3
 }) {
+  const { usuario } = useAuth()
+  const userRole = usuario?.rol || 'trabajador'
   const menuItems = [
     {
       to: '/',
       label: 'Dashboard',
-      icon: '📊',
-      roles: ['admin', 'vendedor', 'almacen']
+      roles: ['admin', 'trabajador']
     },
     {
       to: '/ventas',
       label: 'Ventas (POS)',
-      icon: '🛒',
       badge: 'F2',
       badgeClass: 'pill',
-      roles: ['admin', 'vendedor']
+      roles: ['admin', 'trabajador']
     },
     {
       to: '/inventario',
       label: 'Inventario',
-      icon: '💊',
       badge: 'Stock',
       badgeClass: 'role',
-      roles: ['admin', 'almacen']
+      roles: ['admin']
     },
     {
       to: '/clientes',
       label: 'Clientes',
-      icon: '👥',
-      roles: ['admin', 'vendedor']
+      roles: ['admin', 'trabajador']
     },
     {
-      to: '/alertas',
-      label: 'Alertas',
-      icon: '🔔',
+      to: '/avisos',
+      label: 'Avisos de stock',
       badge: alertCount > 0 ? alertCount : null,
       badgeClass: 'danger',
-      roles: ['admin', 'vendedor', 'almacen']
+      roles: ['admin', 'trabajador']
+    },
+    {
+      to: '/turnos',
+      label: 'Turnos',
+      roles: ['admin', 'trabajador']
     },
     {
       to: '/reportes',
       label: 'Reportes',
-      icon: '📈',
       badge: 'Admin',
       badgeClass: 'role',
       roles: ['admin']
@@ -82,12 +83,12 @@ export default function Sidebar({
         {/* Encabezado del Sidebar */}
         <div className="sidebar-header">
           <NavLink to="/" className="sidebar-brand" onClick={onClose}>
-            <div className="sidebar-logo">⚕️</div>
             {!isCollapsed && (
-              <div className="sidebar-brand-title">
-                <span className="sidebar-brand-main">Nova Salud</span>
-                <span className="sidebar-brand-sub">Sistema Botica</span>
-              </div>
+              <img
+                className="sidebar-logo-image"
+                src={logoFarmacia}
+                alt="Logo de Nova Salud Botica"
+              />
             )}
           </NavLink>
 
@@ -97,7 +98,7 @@ export default function Sidebar({
             onClick={onClose}
             aria-label="Cerrar menú"
           >
-            ✕
+            Cerrar
           </button>
         </div>
 
@@ -116,7 +117,7 @@ export default function Sidebar({
               onClick={onClose}
               title={isCollapsed ? item.label : undefined}
             >
-              <span className="sidebar-icon">{item.icon}</span>
+              {item.icon && <span className="sidebar-icon">{item.icon}</span>}
               {!isCollapsed && (
                 <>
                   <span className="sidebar-link-text">{item.label}</span>
@@ -141,18 +142,6 @@ export default function Sidebar({
               </div>
               <span>v1.0.0</span>
             </div>
-          )}
-
-          {onToggleCollapse && (
-            <button
-              type="button"
-              className="sidebar-collapse-toggle-btn"
-              onClick={onToggleCollapse}
-              title={isCollapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'}
-            >
-              <span>{isCollapsed ? '→' : '←'}</span>
-              {!isCollapsed && <span>Contraer menú</span>}
-            </button>
           )}
         </div>
       </aside>
