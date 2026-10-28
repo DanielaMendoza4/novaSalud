@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context'
@@ -8,10 +9,9 @@ import './Login.css'
 const CURRENT_YEAR = new Date().getFullYear()
 
 /**
- * Login de Nova Salud con dos tipos de acceso:
- * - Trabajador: acceso operativo para ventas y clientes.
- * - Administrador: rol admin (acceso completo).
- * Las credenciales son simuladas y viven en src/data/usuarios.js.
+ * Login de Nova Salud:
+ * - Trabajador: acceso operativo.
+ * - Administrador: acceso completo.
  */
 export default function Login() {
   const { usuario, login } = useAuth()
@@ -23,10 +23,16 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const [tipoAcceso, setTipoAcceso] = useState('usuario')
-  const accesoActivo = tiposAcceso.find((tipo) => tipo.id === tipoAcceso) ?? tiposAcceso[0]
+  const [tipoAcceso, setTipoAcceso] = useState(
+    tiposAcceso[0]?.id ?? 'usuario'
+  )
+
+  const accesoActivo =
+    tiposAcceso.find((tipo) => tipo.id === tipoAcceso) ??
+    tiposAcceso[0]
+
   const cuentaDemo = usuariosDemo.find(
-    (cuenta) => cuenta.rol === accesoActivo.rol
+    (cuenta) => cuenta.rol === accesoActivo?.rol
   )
 
   if (usuario) {
@@ -40,6 +46,7 @@ export default function Login() {
 
   const usarCredencialesDemo = () => {
     if (!cuentaDemo) return
+
     setEmail(cuentaDemo.email)
     setPassword(cuentaDemo.password)
     setError('')
@@ -57,10 +64,17 @@ export default function Login() {
     setLoading(true)
 
     try {
-      await login({ email, password })
+      await login({
+        email: email.trim(),
+        password,
+        rolEsperado: accesoActivo.rol
+      })
+
       navigate('/', { replace: true })
     } catch (loginError) {
-      setError(loginError.message || 'No se pudo iniciar sesión.')
+      setError(
+        loginError.message || 'No se pudo iniciar sesión.'
+      )
     } finally {
       setLoading(false)
     }
@@ -78,29 +92,30 @@ export default function Login() {
             </div>
           </div>
 
-          <span className="login-brand-badge">Sistema integral</span>
+          <span className="login-brand-badge">
+            Sistema integral
+          </span>
         </div>
 
         <div className="login-brand-copy">
-          <p className="login-eyebrow">Panel de gestión farmacéutica</p>
+          <p className="login-eyebrow">
+            Panel de gestión farmacéutica
+          </p>
+
           <h2>
             Tu botica, <em>organizada</em> y bajo control.
           </h2>
+
           <p>
-            Inventario, punto de venta, alertas de vencimiento y reportes en una
-            sola plataforma pensada para el día a día de tu farmacia.
+            Inventario, punto de venta, alertas de vencimiento y
+            reportes en una sola plataforma pensada para el día a
+            día de tu farmacia.
           </p>
 
           <ul className="login-feature-list">
-            <li>
-              Control de stock y lotes en tiempo real
-            </li>
-            <li>
-              Alertas de quiebre y próximos vencimientos
-            </li>
-            <li>
-              Punto de venta rápido con lector de códigos
-            </li>
+            <li>Control de stock y lotes en tiempo real</li>
+            <li>Alertas de quiebre y próximos vencimientos</li>
+            <li>Punto de venta rápido con lector de códigos</li>
           </ul>
         </div>
 
@@ -123,12 +138,20 @@ export default function Login() {
 
         <div className="login-card">
           <header className="login-card-header">
-            <span className="login-eyebrow">Acceso al sistema</span>
+            <span className="login-eyebrow">
+              Acceso al sistema
+            </span>
             <h1>Bienvenido de vuelta</h1>
-            <p>Selecciona tu tipo de acceso e inicia sesión.</p>
+            <p>
+              Selecciona tu tipo de acceso e inicia sesión.
+            </p>
           </header>
 
-          <div className="login-tabs" role="tablist" aria-label="Tipo de acceso">
+          <div
+            className="login-tabs"
+            role="tablist"
+            aria-label="Tipo de acceso"
+          >
             {tiposAcceso.map((tipo) => (
               <button
                 key={tipo.id}
@@ -139,17 +162,27 @@ export default function Login() {
                   tipoAcceso === tipo.id ? 'active' : ''
                 }`}
                 onClick={() => cambiarAcceso(tipo.id)}
+                disabled={loading}
               >
                 {tipo.etiqueta}
               </button>
             ))}
           </div>
 
-          <p className="login-access-description">{accesoActivo.descripcion}</p>
+          <p className="login-access-description">
+            {accesoActivo?.descripcion}
+          </p>
 
-          <form className="login-form" onSubmit={handleSubmit} noValidate>
+          <form
+            className="login-form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
             <div className="login-field">
-              <label htmlFor="login-email">Correo electrónico</label>
+              <label htmlFor="login-email">
+                Correo electrónico
+              </label>
+
               <div className="login-input-wrapper">
                 <svg
                   className="login-input-icon"
@@ -159,27 +192,40 @@ export default function Login() {
                   strokeWidth="1.8"
                   aria-hidden="true"
                 >
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <rect
+                    x="3"
+                    y="5"
+                    width="18"
+                    height="14"
+                    rx="2"
+                  />
                   <path d="m3 7 9 6 9-6" />
                 </svg>
+
                 <input
                   id="login-email"
                   type="email"
                   autoComplete="email"
                   placeholder={
-                    accesoActivo.rol === 'admin'
+                    accesoActivo?.rol === 'admin'
                       ? 'admin@novasalud.pe'
                       : 'trabajador@novasalud.pe'
                   }
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) =>
+                    setEmail(event.target.value)
+                  }
                   disabled={loading}
+                  required
                 />
               </div>
             </div>
 
             <div className="login-field">
-              <label htmlFor="login-password">Contraseña</label>
+              <label htmlFor="login-password">
+                Contraseña
+              </label>
+
               <div className="login-input-wrapper">
                 <svg
                   className="login-input-icon"
@@ -189,25 +235,41 @@ export default function Login() {
                   strokeWidth="1.8"
                   aria-hidden="true"
                 >
-                  <rect x="4" y="10" width="16" height="10" rx="2" />
+                  <rect
+                    x="4"
+                    y="10"
+                    width="16"
+                    height="10"
+                    rx="2"
+                  />
                   <path d="M8 10V7a4 4 0 0 1 8 0v3" />
                 </svg>
+
                 <input
                   id="login-password"
                   type={mostrarPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="Ingresa tu contraseña"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) =>
+                    setPassword(event.target.value)
+                  }
                   disabled={loading}
+                  required
                 />
+
                 <button
                   type="button"
                   className="login-password-toggle"
-                  onClick={() => setMostrarPassword((visible) => !visible)}
-                  aria-label={
-                    mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                  onClick={() =>
+                    setMostrarPassword((visible) => !visible)
                   }
+                  aria-label={
+                    mostrarPassword
+                      ? 'Ocultar contraseña'
+                      : 'Mostrar contraseña'
+                  }
+                  disabled={loading}
                 >
                   {mostrarPassword ? 'Ocultar' : 'Mostrar'}
                 </button>
@@ -237,29 +299,40 @@ export default function Login() {
               <span className="login-demo-badge">Demo</span>
               <span>Credenciales de demostración</span>
             </div>
-            <div className="login-demo-credentials">
-              <code>{cuentaDemo?.email}</code>
-              <span>·</span>
-              <code>{cuentaDemo?.password}</code>
-            </div>
-            <button
-              type="button"
-              className="login-demo-button"
-              onClick={usarCredencialesDemo}
-              disabled={loading}
-            >
-              Autocompletar credenciales
-            </button>
+
+            {cuentaDemo ? (
+              <>
+                <div className="login-demo-credentials">
+                  <code>{cuentaDemo.email}</code>
+                  <span>·</span>
+                  <code>{cuentaDemo.password}</code>
+                </div>
+
+                <button
+                  type="button"
+                  className="login-demo-button"
+                  onClick={usarCredencialesDemo}
+                  disabled={loading}
+                >
+                  Autocompletar credenciales
+                </button>
+              </>
+            ) : (
+              <p>
+                No hay credenciales demo configuradas para este rol.
+              </p>
+            )}
           </div>
 
           <p className="login-security-note">
-            Sesión simulada para fines académicos. La contraseña no se
-            almacena en el navegador.
+            Acceso de demostración para fines académicos. No utilices
+            credenciales reales en el modo mock.
           </p>
         </div>
 
         <footer className="login-footer">
-          © {CURRENT_YEAR} Nova Salud — Sistema Integral de Gestión Farmacéutica
+          © {CURRENT_YEAR} Nova Salud — Sistema Integral de Gestión
+          Farmacéutica
         </footer>
       </main>
     </div>

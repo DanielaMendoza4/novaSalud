@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import AuthContext from './AuthContext'
 import { authService } from '../services'
@@ -9,34 +10,52 @@ const leerUsuarioGuardado = () => {
   try {
     const guardado = localStorage.getItem(CLAVE_USUARIO)
     const usuario = guardado ? JSON.parse(guardado) : null
+
     if (!usuario || !['admin', 'trabajador'].includes(usuario.rol)) {
       localStorage.removeItem(CLAVE_USUARIO)
       localStorage.removeItem(CLAVE_TOKEN)
       return null
     }
+
     return usuario
   } catch {
+    localStorage.removeItem(CLAVE_USUARIO)
+    localStorage.removeItem(CLAVE_TOKEN)
     return null
   }
 }
 
-/**
- * Proveedor de autenticación conectado al contrato de API.
- * En modo mock, authService usa las cuentas de demostración.
- */
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(leerUsuarioGuardado)
-  const [validandoSesion, setValidandoSesion] = useState(() => Boolean(localStorage.getItem(CLAVE_TOKEN)))
+  const [validandoSesion, setValidandoSesion] = useState(
+    () => Boolean(localStorage.getItem(CLAVE_TOKEN))
+  )
 
   useEffect(() => {
     const token = localStorage.getItem(CLAVE_TOKEN)
-    if (!token) return
+
+    if (!token) {
+      setValidandoSesion(false)
+      return
+    }
+
+    let activo = true
 
     authService.me()
       .then((response) => {
-        if (response?.usuario && ['admin', 'trabajador'].includes(response.usuario.rol)) {
-          setUsuario(response.usuario)
-          localStorage.setItem(CLAVE_USUARIO, JSON.stringify(response.usuario))
+        if (!activo) return
+
+        const usuarioActual = response?.usuario
+
+        if (
+          usuarioActual &&
+          ['admin', 'trabajador'].includes(usuarioActual.rol)
+        ) {
+          setUsuario(usuarioActual)
+          localStorage.setItem(
+            CLAVE_USUARIO,
+            JSON.stringify(usuarioActual)
+          )
         } else {
           localStorage.removeItem(CLAVE_USUARIO)
           localStorage.removeItem(CLAVE_TOKEN)
@@ -44,19 +63,48 @@ export function AuthProvider({ children }) {
         }
       })
       .catch(() => {
-        setUsuario(null)
+        if (!activo) return
+
         localStorage.removeItem(CLAVE_USUARIO)
         localStorage.removeItem(CLAVE_TOKEN)
+        setUsuario(null)
       })
-      .finally(() => setValidandoSesion(false))
+      .finally(() => {
+        if (activo) setValidandoSesion(false)
+      })
+
+    return () => {
+      activo = false
+    }
   }, [])
 
-  const login = async ({ email, password }) => {
+  const login = async ({ email, password, rolEsperado }) => {
     const response = await authService.login({ email, password })
+
+    if (!response?.token || !response?.usuario) {
+      throw new Error('La respuesta de autenticación no es válida.')
+    }
+
+    const usuarioAutenticado = response.usuario
+
+    if (!['admin', 'trabajador'].includes(usuarioAutenticado.rol)) {
+      throw new Error('El usuario no tiene un rol autorizado.')
+    }
+
+    if (rolEsperado && usuarioAutenticado.rol !== rolEsperado) {
+      throw new Error(
+        'El usuario no corresponde al tipo de acceso seleccionado.'
+      )
+    }
+
     localStorage.setItem(CLAVE_TOKEN, response.token)
-    localStorage.setItem(CLAVE_USUARIO, JSON.stringify(response.usuario))
-    setUsuario(response.usuario)
-    return response.usuario
+    localStorage.setItem(
+      CLAVE_USUARIO,
+      JSON.stringify(usuarioAutenticado)
+    )
+
+    setUsuario(usuarioAutenticado)
+    return usuarioAutenticado
   }
 
   const logout = () => {
