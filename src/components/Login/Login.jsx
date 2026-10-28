@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context'
 import { tiposAcceso, usuariosDemo } from '../../data/usuarios'
+import logoFarmacia from '../../assets/images/logo-farmacia.jpg'
 import Button from '../Button/Button'
 import './Login.css'
 
@@ -85,11 +86,7 @@ export default function Login() {
       <aside className="login-brand-panel">
         <div className="login-brand-top">
           <div className="login-logo">
-            <span className="login-logo-cross">+</span>
-            <div>
-              <strong>Nova Salud</strong>
-              <small>Farmacia &amp; Botica</small>
-            </div>
+            <img className="login-brand-image" src={logoFarmacia} alt="Logo de Nova Salud Botica" />
           </div>
 
           <span className="login-brand-badge">
@@ -128,11 +125,7 @@ export default function Login() {
       <main className="login-form-panel">
         <div className="login-mobile-brand">
           <div className="login-logo login-logo-compact">
-            <span className="login-logo-cross">+</span>
-            <div>
-              <strong>Nova Salud</strong>
-              <small>Farmacia &amp; Botica</small>
-            </div>
+            <img className="login-brand-image" src={logoFarmacia} alt="Logo de Nova Salud Botica" />
           </div>
         </div>
 

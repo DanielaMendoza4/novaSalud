@@ -43,6 +43,14 @@
   gap: 10px;
 }
 
+.login-brand-image {
+  display: block;
+  width: min(100%, 300px);
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
 .login-logo-cross {
   display: grid;
   width: 38px;
@@ -446,6 +454,11 @@
 
   .login-logo {
     gap: 12px;
+  }
+
+  .login-brand-image {
+    width: min(100%, 330px);
+    border-radius: 14px;
   }
 
   .login-logo-cross {
