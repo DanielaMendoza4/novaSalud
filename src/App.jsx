@@ -116,26 +116,20 @@ function DashboardDemo() {
       {/* Banner Principal */}
       <div className="dashboard-hero">
         <div className="dashboard-hero-content">
-          <h1>Botica Nova Salud — Panel de Control</h1>
-          <p>
-            Sistema web de gestión de inventario y punto de venta automatizado con control de stock en tiempo real, alertas de vencimiento y registro de ventas.
-          </p>
+          <h1> Panel Administrativo-Botica Nova Salud</h1>
         </div>
         <div className="dashboard-hero-actions">
           <Button
             variant="success"
-            icon="🛒"
             onClick={() => {
               setModalType('pos')
               setModalAbierto(true)
             }}
           >
-            Nueva Venta (F2)
+            Nueva Venta 
           </Button>
           <Button
-            variant="outline"
-            style={{ color: '#ffffff', borderColor: 'rgba(255,255,255,0.4)' }}
-            icon="📦"
+            variant="success"
             onClick={() => {
               setModalType('producto')
               setModalAbierto(true)
@@ -157,7 +151,6 @@ function DashboardDemo() {
             title="Ventas del Día"
             value="S/ 2,480.50"
             subtitle="42 transacciones realizadas"
-            icon="💵"
             variant="primary"
             trend={{ direction: 'up', text: '+14.2% vs ayer' }}
           />
@@ -166,7 +159,6 @@ function DashboardDemo() {
             title="Stock Bajo"
             value="8 productos"
             subtitle="Por debajo del stock mínimo"
-            icon="⚠️"
             variant="danger"
             trend={{ direction: 'down', text: '3 críticos' }}
           />
@@ -175,7 +167,6 @@ function DashboardDemo() {
             title="Por Vencer (<30 días)"
             value="5 lotes"
             subtitle="Rotación FEFO requerida"
-            icon="⏳"
             variant="warning"
           />
 
@@ -183,7 +174,6 @@ function DashboardDemo() {
             title="Total en Inventario"
             value="1,240 ítems"
             subtitle="En 8 categorías activas"
-            icon="💊"
             variant="info"
           />
         </div>
@@ -194,7 +184,7 @@ function DashboardDemo() {
         {/* Tabla Modular de Productos con SearchBar */}
         <div className="panel-card">
           <div className="dashboard-section-title">
-            <span>Control de Inventario y Alertas (Paso 8 y 9)</span>
+            <span>Control de Inventario</span>
             <Badge variant="neutral">{productosFiltrados.length} medicamentos</Badge>
           </div>
 
@@ -216,62 +206,6 @@ function DashboardDemo() {
           />
         </div>
 
-        {/* Panel lateral: Catálogo de Componentes */}
-        <div className="panel-card">
-          <h3 className="dashboard-section-title">
-            <span>Carpeta /components</span>
-          </h3>
-          <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px 0' }}>
-            Cada componente vive en su propia carpeta con su archivo <code>.jsx</code> y <code>.css</code>, siguiendo la arquitectura de minimarket y lo indicado en <code>trabajoPlan.pdf</code>:
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🔐 Login</strong> (<code>Login/Login.jsx</code> + <code>Login.css</code>)
-              <div style={{ color: '#64748b' }}>Acceso de usuario y administrador con sesión simulada.</div>
-            </div>
-
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🧭 Navbar</strong> (<code>Navbar/Navbar.jsx</code> + <code>Navbar.css</code>)
-              <div style={{ color: '#64748b' }}>Barra superior con buscador POS, datos de usuario y campana.</div>
-            </div>
-
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>📑 Sidebar</strong> (<code>Sidebar/Sidebar.jsx</code> + <code>Sidebar.css</code>)
-              <div style={{ color: '#64748b' }}>Menú lateral con módulos (Dashboard, POS, Inventario, etc.).</div>
-            </div>
-
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🔔 AlertBell</strong> (<code>AlertBell/AlertBell.jsx</code> + <code>AlertBell.css</code>)
-              <div style={{ color: '#64748b' }}>Campana con contador dinámico y dropdown de alertas.</div>
-            </div>
-
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🛡️ ProtectedRoute</strong> (<code>ProtectedRoute/ProtectedRoute.jsx</code> + <code>ProtectedRoute.css</code>)
-              <div style={{ color: '#64748b' }}>Seguridad por sesión y roles conectada a AuthContext.</div>
-            </div>
-
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>🖼️ Layout</strong> (<code>Layout/Layout.jsx</code> + <code>Layout.css</code>)
-              <div style={{ color: '#64748b' }}>Envoltorio responsivo con sidebar y navbar adaptables.</div>
-            </div>
-
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>📋 Table & SearchBar</strong> (<code>Table/Table.jsx</code> + <code>SearchBar/SearchBar.jsx</code>)
-              <div style={{ color: '#64748b' }}>Tabla responsiva y buscador optimizado con autofocus lector POS.</div>
-            </div>
-
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>💬 Toast & Modal</strong> (<code>Toast/Toast.jsx</code> + <code>Modal/Modal.jsx</code>)
-              <div style={{ color: '#64748b' }}>Notificaciones flotantes y diálogos modales accesibles.</div>
-            </div>
-
-            <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-              <strong>✨ Card, Badge & Button</strong> (<code>Card</code>, <code>Badge</code>, <code>Button</code>)
-              <div style={{ color: '#64748b' }}>Elementos atómicos de interfaz con estilos propios.</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Modal Reutilizable */}
@@ -279,7 +213,6 @@ function DashboardDemo() {
         isOpen={modalAbierto}
         onClose={() => setModalAbierto(false)}
         title={modalType === 'pos' ? 'Punto de Venta — Nueva Venta Rápida' : 'Registrar Nuevo Producto'}
-        icon={modalType === 'pos' ? '🛒' : '💊'}
         footer={
           <>
             <Button variant="outline" onClick={() => setModalAbierto(false)}>
@@ -331,9 +264,9 @@ function DashboardDemo() {
                 background: '#ffffff'
               }}
             >
-              <option value="efectivo">💵 Efectivo</option>
-              <option value="tarjeta">💳 Tarjeta (POS)</option>
-              <option value="yape">📱 Yape / Plin</option>
+              <option value="efectivo">Efectivo</option>
+              <option value="tarjeta">Tarjeta (POS)</option>
+              <option value="yape">Yape / Plin</option>
             </select>
           </div>
         ) : (
@@ -420,7 +353,6 @@ function AppContent() {
             <ProtectedRoute roles={['admin', 'almacen']}>
               <PlaceholderPage
                 title="Gestión de Inventario"
-                icon="💊"
                 description="CRUD de productos, control de lotes, fechas de vencimiento y registro de ingresos."
               />
             </ProtectedRoute>
@@ -440,7 +372,6 @@ function AppContent() {
             <ProtectedRoute roles={['admin', 'vendedor', 'almacen']}>
               <PlaceholderPage
                 title="Centro de Alertas de Farmacia"
-                icon="🔔"
                 description="Monitoreo de quiebres de stock, medicamentos próximos a caducar y reposiciones pendientes."
               />
             </ProtectedRoute>
@@ -452,7 +383,6 @@ function AppContent() {
             <ProtectedRoute roles={['admin']}>
               <PlaceholderPage
                 title="Reportes y Estadísticas"
-                icon="📈"
                 description="Métricas de ventas, rotación de productos, márgenes y exportación a formatos CSV y PDF."
               />
             </ProtectedRoute>

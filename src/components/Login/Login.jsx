@@ -94,15 +94,12 @@ export default function Login() {
 
           <ul className="login-feature-list">
             <li>
-              <span className="login-feature-icon">📦</span>
               Control de stock y lotes en tiempo real
             </li>
             <li>
-              <span className="login-feature-icon">🔔</span>
               Alertas de quiebre y próximos vencimientos
             </li>
             <li>
-              <span className="login-feature-icon">🛒</span>
               Punto de venta rápido con lector de códigos
             </li>
           </ul>
@@ -144,9 +141,6 @@ export default function Login() {
                 }`}
                 onClick={() => cambiarAcceso(tipo.id)}
               >
-                <span className="login-tab-icon">
-                  {tipo.id === 'admin' ? '🛡️' : '👤'}
-                </span>
                 {tipo.etiqueta}
               </button>
             ))}
@@ -260,7 +254,7 @@ export default function Login() {
           </div>
 
           <p className="login-security-note">
-            🔒 Sesión simulada para fines académicos. La contraseña no se
+            Sesión simulada para fines académicos. La contraseña no se
             almacena en el navegador.
           </p>
         </div>

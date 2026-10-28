@@ -73,7 +73,6 @@ export default function AlertBell({ alertas: propAlertas, onAlertClick }) {
           <ul className="alert-dropdown-list">
             {count === 0 ? (
               <li className="alert-dropdown-empty">
-                <div className="alert-dropdown-empty-icon">✅</div>
                 <p>No hay alertas pendientes en este momento</p>
               </li>
             ) : (
@@ -88,7 +87,7 @@ export default function AlertBell({ alertas: propAlertas, onAlertClick }) {
                     }}
                   >
                     <div className={`alert-item-indicator ${alerta.tipo || 'stock_bajo'}`}>
-                      {alerta.icono || (alerta.tipo === 'por_vencer' ? '⏳' : alerta.tipo === 'agotado' ? '🚫' : '⚠️')}
+                      {alerta.icono || ''}
                     </div>
                     <div className="alert-item-content">
                       <div className="alert-item-title">{alerta.titulo || alerta.mensaje}</div>

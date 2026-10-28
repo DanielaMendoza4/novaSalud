@@ -20,10 +20,6 @@ export default function Layout({
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
-  const toggleMobileSidebar = () => {
-    setIsSidebarMobileOpen((prev) => !prev)
-  }
-
   const closeMobileSidebar = () => {
     setIsSidebarMobileOpen(false)
   }
@@ -39,7 +35,6 @@ export default function Layout({
         isOpen={isSidebarMobileOpen}
         onClose={closeMobileSidebar}
         isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={toggleCollapseSidebar}
         userRole={user?.rol || 'admin'}
         alertCount={alertas?.length ?? 3}
       />
@@ -52,7 +47,8 @@ export default function Layout({
       >
         {/* Barra de cabecera */}
         <Navbar
-          onToggleSidebar={toggleMobileSidebar}
+          onToggleCollapse={toggleCollapseSidebar}
+          isSidebarCollapsed={isSidebarCollapsed}
           user={user}
           onLogout={onLogout}
           alertas={alertas}

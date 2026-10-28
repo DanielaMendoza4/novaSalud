@@ -8,7 +8,7 @@ export default function Card({
   title,
   value,
   subtitle,
-  icon = '📈',
+  icon = '',
   variant = 'primary', // 'primary' | 'success' | 'warning' | 'danger' | 'info'
   trend, // { direction: 'up' | 'down', text: '+12% vs ayer' }
   children,

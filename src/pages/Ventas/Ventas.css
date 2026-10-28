@@ -60,7 +60,14 @@
   color: var(--primary);
 }
 
-.novasalud-ventas-contenido,
+.novasalud-ventas-pos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  align-items: start;
+  gap: 20px;
+}
+
+.novasalud-ventas-columna-principal,
 .novasalud-ventas-busqueda {
   display: flex;
   flex-direction: column;
@@ -129,6 +136,140 @@
 .novasalud-ventas-cantidad input:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.novasalud-ventas-busqueda-producto {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.novasalud-ventas-busqueda-producto .novasalud-ventas-input {
+  flex: 1;
+}
+
+.novasalud-ventas-productos-rapidos,
+.novasalud-ventas-opciones,
+.novasalud-ventas-montos-rapidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.novasalud-ventas-productos-rapidos {
+  margin-top: 10px;
+}
+
+.novasalud-ventas-productos-rapidos button,
+.novasalud-ventas-montos-rapidos button {
+  padding: 7px 11px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+
+.novasalud-ventas-productos-rapidos button:hover,
+.novasalud-ventas-montos-rapidos button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.novasalud-ventas-opciones {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.novasalud-ventas-opciones.cuatro {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.novasalud-ventas-opciones button {
+  min-height: 38px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.novasalud-ventas-opciones button.activo {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.novasalud-ventas-cobro {
+  position: sticky;
+  top: 90px;
+}
+
+.novasalud-ventas-cobro .novasalud-ventas-label {
+  margin-top: 14px;
+}
+
+.novasalud-ventas-cobro .novasalud-ventas-montos-rapidos {
+  margin-top: 8px;
+}
+
+.novasalud-ventas-resumen {
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.novasalud-ventas-resumen > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.novasalud-ventas-resumen .novasalud-ventas-total {
+  margin-top: 8px;
+  padding-top: 12px;
+  color: var(--text-main);
+  font-size: 20px;
+}
+
+.novasalud-ventas-resumen .novasalud-ventas-total strong:last-child {
+  color: var(--primary);
+  font-size: 28px;
+}
+
+.novasalud-ventas-cobro-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.novasalud-ventas-cobro-botones button {
+  width: 100%;
+}
+
+.novasalud-ventas-disponibles-btn {
+  flex-shrink: 0;
+  padding: 0 14px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.novasalud-ventas-disponibles-btn:hover {
+  background: var(--primary-dark);
 }
 
 .novasalud-ventas-resultados,
@@ -265,6 +406,35 @@
   font-size: 32px;
 }
 
+.novasalud-ventas-tabla-cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 80px 90px 34px;
+  gap: 16px;
+  padding-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.novasalud-ventas-receta-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--warning-light);
+  color: var(--warning);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.novasalud-ventas-receta-badge input {
+  accent-color: var(--primary);
+}
+
 .novasalud-ventas-carrito-vacio strong {
   color: var(--text-main);
   font-size: 14px;
@@ -282,7 +452,7 @@
 
 .novasalud-ventas-linea {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto 34px;
+  grid-template-columns: minmax(0, 1fr) 150px 80px 90px 34px;
   align-items: center;
   gap: 16px;
   padding: 13px 0;
@@ -468,14 +638,6 @@
   max-width: min(420px, calc(100vw - 32px));
 }
 
-@media (min-width: 1100px) {
-  .novasalud-ventas-busqueda {
-    display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    align-items: start;
-  }
-}
-
 @media (max-width: 640px) {
   .novasalud-ventas-encabezado {
     align-items: flex-start;
@@ -506,6 +668,26 @@
   .novasalud-ventas-campos-dobles {
     grid-template-columns: 1fr;
     gap: 2px;
+  }
+
+  .novasalud-ventas-pos {
+    grid-template-columns: 1fr;
+  }
+
+  .novasalud-ventas-cobro {
+    position: static;
+  }
+
+  .novasalud-ventas-tabla-cabecera {
+    display: none;
+  }
+
+  .novasalud-ventas-busqueda-producto {
+    flex-direction: column;
+  }
+
+  .novasalud-ventas-opciones.cuatro {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .novasalud-ventas-botones {

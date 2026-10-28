@@ -222,7 +222,7 @@ export default function Clientes() {
             </select>
           </label>
         </div>
-        <Table columns={columnas} data={clientesPagina} emptyMessage="No encontramos clientes con esos criterios." emptyIcon="👥" />
+        <Table columns={columnas} data={clientesPagina} emptyMessage="No encontramos clientes con esos criterios." />
         {clientesFiltrados.length > 0 && <footer className="novasalud-clientes-paginacion">
           <span>Mostrando {(paginaActual - 1) * CLIENTES_POR_PAGINA + 1}–{Math.min(paginaActual * CLIENTES_POR_PAGINA, clientesFiltrados.length)} de {clientesFiltrados.length}</span>
           <div>
@@ -233,7 +233,7 @@ export default function Clientes() {
         </footer>}
       </section>
 
-      <Modal isOpen={modal === 'formulario'} onClose={() => setModal(null)} title={clienteActivo ? 'Editar cliente' : 'Nuevo cliente'} icon="👤" size="md"
+      <Modal isOpen={modal === 'formulario'} onClose={() => setModal(null)} title={clienteActivo ? 'Editar cliente' : 'Nuevo cliente'} size="md"
         footer={<><Button variant="outline" onClick={() => setModal(null)}>Cancelar</Button><Button type="submit" form="novasalud-formulario-cliente">{clienteActivo ? 'Guardar cambios' : 'Registrar cliente'}</Button></>}>
         <form id="novasalud-formulario-cliente" className="novasalud-clientes-formulario" onSubmit={guardarCliente} noValidate>
           <div className="novasalud-clientes-campo">
@@ -283,7 +283,7 @@ export default function Clientes() {
         </form>
       </Modal>
 
-      <Modal isOpen={modal === 'detalle'} onClose={() => setModal(null)} title="Detalle del cliente" icon="👤" size="lg">
+      <Modal isOpen={modal === 'detalle'} onClose={() => setModal(null)} title="Detalle del cliente" size="lg">
         {clienteActivo && <div className="novasalud-clientes-detalle">
           <div className="novasalud-clientes-datos">
             <h4>{clienteActivo.nombre} <Badge variant={clienteActivo.estado === 'activo' ? 'success' : 'neutral'}>{clienteActivo.estado}</Badge></h4>
@@ -303,7 +303,7 @@ export default function Clientes() {
         </div>}
       </Modal>
 
-      <Modal isOpen={modal === 'eliminar'} onClose={() => setModal(null)} title="Eliminar cliente" icon="⚠️" size="sm"
+      <Modal isOpen={modal === 'eliminar'} onClose={() => setModal(null)} title="Eliminar cliente" size="sm"
         footer={<><Button variant="outline" onClick={() => setModal(null)}>Cancelar</Button><Button variant="danger" onClick={confirmarEliminar}>Confirmar</Button></>}>
         <p>{ventas.some((venta) => venta.clienteId === clienteActivo?.id)
           ? <>El cliente <strong>{clienteActivo?.nombre}</strong> tiene ventas asociadas. Se desactivará y conservará su historial.</>
