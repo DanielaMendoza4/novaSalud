@@ -9,7 +9,7 @@ const CURRENT_YEAR = new Date().getFullYear()
 
 /**
  * Login de Nova Salud con dos tipos de acceso:
- * - Usuario: rol vendedor (operación de ventas y clientes).
+ * - Trabajador: acceso operativo para ventas y clientes.
  * - Administrador: rol admin (acceso completo).
  * Las credenciales son simuladas y viven en src/data/usuarios.js.
  */
@@ -17,15 +17,14 @@ export default function Login() {
   const { usuario, login } = useAuth()
   const navigate = useNavigate()
 
-  const [tipoAcceso, setTipoAcceso] = useState('usuario')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const accesoActivo =
-    tiposAcceso.find((tipo) => tipo.id === tipoAcceso) ?? tiposAcceso[0]
+  const [tipoAcceso, setTipoAcceso] = useState('usuario')
+  const accesoActivo = tiposAcceso.find((tipo) => tipo.id === tipoAcceso) ?? tiposAcceso[0]
   const cuentaDemo = usuariosDemo.find(
     (cuenta) => cuenta.rol === accesoActivo.rol
   )
@@ -58,7 +57,7 @@ export default function Login() {
     setLoading(true)
 
     try {
-      await login({ email, password, rol: accesoActivo.rol })
+      await login({ email, password })
       navigate('/', { replace: true })
     } catch (loginError) {
       setError(loginError.message || 'No se pudo iniciar sesión.')
@@ -170,7 +169,7 @@ export default function Login() {
                   placeholder={
                     accesoActivo.rol === 'admin'
                       ? 'admin@novasalud.pe'
-                      : 'vendedor@novasalud.pe'
+                      : 'trabajador@novasalud.pe'
                   }
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}

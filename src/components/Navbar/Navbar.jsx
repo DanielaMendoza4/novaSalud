@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AlertBell from '../AlertBell/AlertBell'
+import { useAuth } from '../../context'
 import './Navbar.css'
 
 /**
@@ -9,10 +10,12 @@ import './Navbar.css'
 export default function Navbar({
   onToggleCollapse,
   isSidebarCollapsed = false,
-  user = { nombre: 'Daniel Mendoza', rol: 'admin', sucursal: 'Botica Central' },
+  user = { nombre: 'Personal Botica', rol: 'trabajador' },
   onLogout,
   alertas
 }) {
+  const { usuario } = useAuth()
+  user = usuario || user
   const [busqueda, setBusqueda] = useState('')
 
   const handleSearchSubmit = (e) => {
@@ -25,8 +28,7 @@ export default function Navbar({
 
   const roleLabels = {
     admin: 'Administrador',
-    vendedor: 'Vendedor (POS)',
-    almacen: 'Encargado Almacén'
+    trabajador: 'Trabajador',
   }
 
   const initials = user?.nombre

@@ -35,7 +35,6 @@ export default function Layout({
         isOpen={isSidebarMobileOpen}
         onClose={closeMobileSidebar}
         isCollapsed={isSidebarCollapsed}
-        userRole={user?.rol || 'admin'}
         alertCount={alertas?.length ?? 3}
       />
 

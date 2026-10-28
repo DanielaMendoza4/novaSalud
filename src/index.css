@@ -1,9 +1,9 @@
 /* Variables globales y tokens de diseño - Nova Salud */
 :root {
   /* Paleta Médica Farmacéutica */
-  --primary: #0d9488;         /* Teal 600 */
-  --primary-hover: #0f766e;   /* Teal 700 */
-  --primary-light: #f0fdfa;   /* Teal 50 */
+  --primary: #0d7f6f;
+  --primary-hover: #096b5e;
+  --primary-light: #e3f5ef;
   --primary-border: #ccfbf1;  /* Teal 100 */
 
   --secondary: #0284c7;       /* Sky 600 */
@@ -22,18 +22,18 @@
   --info-light: #eff6ff;
 
   /* Fondos y superficies */
-  --bg-main: #f8fafc;         /* Slate 50 */
+  --bg-main: #f4f7f8;
   --bg-surface: #ffffff;
   --bg-surface-elevated: #ffffff;
   --bg-muted: #f1f5f9;
 
   /* Textos */
-  --text-main: #0f172a;       /* Slate 900 */
-  --text-muted: #64748b;      /* Slate 500 */
+  --text-main: #10231e;
+  --text-muted: #566a74;
   --text-light: #94a3b8;      /* Slate 400 */
 
   /* Bordes y Sombras */
-  --border-color: #e2e8f0;    /* Slate 200 */
+  --border-color: #dde7e4;
   --border-focus: #0d9488;
   --radius-sm: 8px;
   --radius-md: 12px;

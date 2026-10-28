@@ -1,0 +1,22 @@
+.turnos-page { color: #10231e; }
+.turnos-card { width: min(100%, 560px); margin: 0 auto; padding: 28px; }
+.turnos-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid #edf2f0; }
+.turnos-card-header h2 { margin: 4px 0 0; color: #10231e; font-size: 22px; }
+.turnos-eyebrow { color: #566a74; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.turnos-details { display: grid; gap: 18px; padding: 24px 0; }
+.turnos-details div, .turnos-result div { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.turnos-details span, .turnos-result span { color: #566a74; font-size: 13px; }
+.turnos-details strong { color: #10231e; font-size: 14px; text-align: right; }
+.turnos-money { font-size: 24px !important; color: #0d7f6f !important; }
+.turnos-close-form { display: grid; gap: 18px; padding-top: 20px; border-top: 1px solid #edf2f0; }
+.turnos-money-input { position: relative; }
+.turnos-money-input span { position: absolute; top: 13px; left: 13px; color: #566a74; font-size: 13px; font-weight: 700; }
+.turnos-money-input input { padding-left: 35px !important; }
+.turnos-result { display: grid; gap: 12px; margin-top: 24px; padding: 18px; border-radius: 12px; }
+.turnos-result h3 { margin: 0 0 4px; font-size: 15px; }
+.turnos-result.balanced { background: #e3f5ef; color: #096b5e; }
+.turnos-result.unbalanced { background: #fff1f0; color: #b42318; }
+.turnos-result strong { color: inherit; font-size: 14px; }
+.turnos-open-form { display: grid; width: min(100%, 340px); gap: 16px; margin-top: 10px; text-align: left; }
+.turnos-error { width: min(100%, 560px); margin: 0 auto 16px; padding: 12px 14px; border: 1px solid #f5c2c0; border-radius: 10px; background: #fff1f0; color: #b42318; font-size: 13px; }
+.turnos-loading { width: min(100%, 560px); margin: 0 auto; color: #566a74; text-align: center; }

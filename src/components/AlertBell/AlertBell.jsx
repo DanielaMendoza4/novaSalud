@@ -62,7 +62,7 @@ export default function AlertBell({ alertas: propAlertas, onAlertClick }) {
               )}
             </div>
             <Link
-              to="/alertas"
+              to="/avisos"
               className="alert-dropdown-link"
               onClick={() => setIsOpen(false)}
             >
@@ -79,7 +79,7 @@ export default function AlertBell({ alertas: propAlertas, onAlertClick }) {
               alertList.map((alerta) => (
                 <li key={alerta.id || alerta._id}>
                   <Link
-                    to="/alertas"
+                    to="/avisos"
                     className="alert-dropdown-item"
                     onClick={() => {
                       setIsOpen(false)
@@ -102,7 +102,7 @@ export default function AlertBell({ alertas: propAlertas, onAlertClick }) {
 
           <div className="alert-dropdown-footer">
             <Link
-              to="/alertas"
+              to="/avisos"
               className="alert-view-all-btn"
               onClick={() => setIsOpen(false)}
             >

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import logoFarmacia from '../../assets/images/logo-farmacia.jpg'
+import { useAuth } from '../../context'
 import './Sidebar.css'
 
 /**
@@ -10,40 +11,46 @@ export default function Sidebar({
   isOpen = false,
   onClose,
   isCollapsed = false,
-  userRole = 'admin',
   alertCount = 3
 }) {
+  const { usuario } = useAuth()
+  const userRole = usuario?.rol || 'trabajador'
   const menuItems = [
     {
       to: '/',
       label: 'Dashboard',
-      roles: ['admin', 'vendedor', 'almacen']
+      roles: ['admin', 'trabajador']
     },
     {
       to: '/ventas',
       label: 'Ventas (POS)',
       badge: 'F2',
       badgeClass: 'pill',
-      roles: ['admin', 'vendedor']
+      roles: ['admin', 'trabajador']
     },
     {
       to: '/inventario',
       label: 'Inventario',
       badge: 'Stock',
       badgeClass: 'role',
-      roles: ['admin', 'almacen']
+      roles: ['admin']
     },
     {
       to: '/clientes',
       label: 'Clientes',
-      roles: ['admin', 'vendedor']
+      roles: ['admin', 'trabajador']
     },
     {
-      to: '/alertas',
-      label: 'Alertas',
+      to: '/avisos',
+      label: 'Avisos de stock',
       badge: alertCount > 0 ? alertCount : null,
       badgeClass: 'danger',
-      roles: ['admin', 'vendedor', 'almacen']
+      roles: ['admin', 'trabajador']
+    },
+    {
+      to: '/turnos',
+      label: 'Turnos',
+      roles: ['admin', 'trabajador']
     },
     {
       to: '/reportes',

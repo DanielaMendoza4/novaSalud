@@ -1,0 +1,20 @@
+.avisos-page { color: #10231e; }
+.avisos-card { padding: 0; overflow: hidden; }
+.avisos-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #dde7e4; border-bottom: 1px solid #dde7e4; }
+.avisos-summary > div { display: grid; gap: 4px; padding: 18px 20px; background: #fff; }
+.avisos-summary strong { color: #0d7f6f; font-size: 24px; }
+.avisos-summary span { color: #566a74; font-size: 12px; }
+.danger-text { color: #b42318 !important; }
+.warning-text { color: #a15c00 !important; }
+.avisos-list { padding: 0 20px; }
+.aviso-row { display: flex; align-items: center; gap: 14px; min-height: 76px; border-bottom: 1px solid #edf2f0; }
+.aviso-row:last-child { border-bottom: 0; }
+.aviso-dot { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; }
+.aviso-dot.danger { background: #d64545; box-shadow: 0 0 0 5px #fff0ef; }
+.aviso-dot.warning { background: #d78a16; box-shadow: 0 0 0 5px #fff6df; }
+.aviso-content { display: grid; flex: 1; gap: 5px; }
+.aviso-content strong { color: #10231e; font-size: 14px; }
+.aviso-content span { color: #566a74; font-size: 13px; }
+.avisos-error, .avisos-loading { padding: 16px; }
+.avisos-error { margin-bottom: 16px; border: 1px solid #f5c2c0; border-radius: 10px; background: #fff1f0; color: #b42318; font-size: 13px; }
+@media (max-width: 700px) { .avisos-summary { grid-template-columns: repeat(2, 1fr); } .aviso-row { align-items: flex-start; padding: 16px 0; } }

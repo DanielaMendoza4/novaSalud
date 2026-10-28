@@ -1,532 +1,222 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import Badge from '../../components/Badge/Badge'
+import { useEffect, useMemo, useState } from 'react'
 import Button from '../../components/Button/Button'
-import Modal from '../../components/Modal/Modal'
-import Table from '../../components/Table/Table'
-import Toast from '../../components/Toast/Toast'
-import { useAuth } from '../../context'
-import { useDatos } from '../../context/useDatos'
+import Badge from '../../components/Badge/Badge'
+import EmptyState from '../../components/EmptyState/EmptyState'
+import Field from '../../components/Field/Field'
+import PageHeader from '../../components/PageHeader/PageHeader'
+import SearchBar from '../../components/SearchBar/SearchBar'
+import { clientesService, productosService, turnosService, ventasService } from '../../services'
+import { ahoraEnLima, formatFecha, formatHora } from '../../utils/fechas'
+import { mensajeDeError } from '../../utils/errores'
 import './Ventas.css'
 
-const redondear = (importe) => Math.round((importe + Number.EPSILON) * 100) / 100
-const moneda = (importe) => `S/ ${importe.toFixed(2)}`
-const normalizar = (texto) => texto.toLocaleLowerCase('es-PE').trim()
-const crearMarcaTemporalVenta = () => {
-  const ahora = new Date()
-  return {
-    id: `V-${ahora.getFullYear()}-${ahora.getTime().toString().slice(-6)}`,
-    fecha: ahora.toISOString()
-  }
-}
-const fechaLocal = () => {
-  const fecha = new Date()
-  return new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 10)
-}
+const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
+const paymentMethods = ['efectivo', 'yape', 'plin', 'tarjeta']
 
 export default function Ventas() {
-  const { usuario } = useAuth()
-  const { productos, clientes, ventas, registrarVenta, anularVenta } = useDatos()
-  const esAdmin = usuario?.rol === 'admin'
-  const [pestana, setPestana] = useState('nueva')
-  const [busquedaProducto, setBusquedaProducto] = useState('')
-  const [mostrarDisponibles, setMostrarDisponibles] = useState(false)
-  const [carrito, setCarrito] = useState([])
-  const [clienteId, setClienteId] = useState(1)
-  const [busquedaCliente, setBusquedaCliente] = useState('')
-  const [documentoCliente, setDocumentoCliente] = useState('00000000')
-  const [mostrarClientes, setMostrarClientes] = useState(false)
+  const [products, setProducts] = useState([])
+  const [clients, setClients] = useState([])
+  const [turno, setTurno] = useState(null)
+  const [waitingSales, setWaitingSales] = useState([])
+  const [query, setQuery] = useState('')
+  const [cart, setCart] = useState([])
+  const [clientId, setClientId] = useState('')
   const [comprobante, setComprobante] = useState('boleta')
-  const [metodoPago, setMetodoPago] = useState('efectivo')
-  const [montoRecibido, setMontoRecibido] = useState('')
-  const [toast, setToast] = useState(null)
-  const [modal, setModal] = useState(null)
-  const [ventaSeleccionada, setVentaSeleccionada] = useState(null)
-  const [ventaAnular, setVentaAnular] = useState(null)
-  const [fechaDesde, setFechaDesde] = useState('')
-  const [fechaHasta, setFechaHasta] = useState('')
-  const busquedaRef = useRef(null)
-  const cobrarRef = useRef(null)
-  const ponerEnEsperaRef = useRef(null)
+  const [method, setMethod] = useState('efectivo')
+  const [paid, setPaid] = useState('')
+  const [quantityError, setQuantityError] = useState('')
+  const [rowAction, setRowAction] = useState(null)
+  const [state, setState] = useState({ loading: true, error: '', saving: false, success: '' })
 
-  const total = redondear(carrito.reduce((importe, item) => importe + item.precio * item.cantidad, 0))
-  const subtotal = redondear(total / 1.18)
-  const igv = redondear(total - subtotal)
-  const clienteSeleccionado = clientes.find((cliente) => cliente.id === clienteId) || clientes[0]
-  const coincidenciasProducto = useMemo(() => {
-    const termino = normalizar(busquedaProducto)
-    if (!termino) return []
-    return productos.filter((producto) =>
-      normalizar(`${producto.nombre} ${producto.codigo}`).includes(termino)
-    ).slice(0, 5)
-  }, [busquedaProducto, productos])
-  const productosDisponibles = useMemo(
-    () => productos.filter((producto) => producto.stock > 0 && producto.fechaVencimiento >= fechaLocal()),
-    [productos]
-  )
-  const productosRapidos = useMemo(() => {
-    const vendidos = new Map()
-    ventas.forEach((venta) => venta.items.forEach((item) => {
-      vendidos.set(item.productoId, (vendidos.get(item.productoId) || 0) + item.cantidad)
-    }))
-    return [...productosDisponibles]
-      .sort((a, b) => (vendidos.get(b.id) || 0) - (vendidos.get(a.id) || 0))
-      .slice(0, 4)
-  }, [productosDisponibles, ventas])
+  const load = () => Promise.all([
+    productosService.listar({ q: query, page: 1, limit: 20 }),
+    clientesService.listar(),
+    turnosService.actual(),
+    ventasService.listar({ estado: 'espera' })
+  ]).then(([productResponse, clientResponse, currentTurn, waitingResponse]) => {
+    setProducts(productResponse.data)
+    setClients(clientResponse)
+    setTurno(currentTurn)
+    setWaitingSales(waitingResponse.data)
+    setState((current) => ({ ...current, loading: false, error: '' }))
+  }).catch((error) => setState((current) => ({ ...current, loading: false, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) })))
 
-  const avisar = (message, type = 'error', title = type === 'error' ? 'No se pudo completar' : 'Atención') => {
-    setToast({ message, type, title })
-  }
+  useEffect(() => { load() }, [query])
 
-  const productoVencido = (producto) => producto.fechaVencimiento < fechaLocal()
-  const estadoProducto = (producto) => {
-    if (productoVencido(producto)) return { texto: 'Vencido', variante: 'danger' }
-    const dias = Math.ceil((new Date(`${producto.fechaVencimiento}T00:00:00`) - new Date(`${fechaLocal()}T00:00:00`)) / 86400000)
-    if (dias <= 30) return { texto: `Vence en ${dias} días`, variante: 'warning' }
-    if (!producto.stock) return { texto: 'Agotado', variante: 'danger' }
-    if (producto.stock <= producto.minimo) return { texto: 'Stock bajo', variante: 'warning' }
-    return { texto: 'Disponible', variante: 'success' }
-  }
+  const total = useMemo(() => cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0), [cart])
+  const cash = method === 'efectivo' ? Number(paid || 0) : 0
+  const change = Math.max(0, cash - total)
 
-  const agregarProducto = (producto) => {
-    if (!producto) {
-      avisar('No se encontró un producto con ese nombre o código.')
+  const addProduct = (product) => {
+    if (['agotado', 'vencido'].includes(product.estado) || product.stock_total <= 0) {
+      setState((current) => ({ ...current, error: 'PRODUCTO_NO_DISPONIBLE: Este producto no se puede agregar.' }))
       return
     }
-    if (productoVencido(producto)) {
-      avisar(`${producto.nombre} está vencido y no puede venderse.`)
-      return
-    }
-    const existente = carrito.find((item) => item.productoId === producto.id)
-    const cantidadActual = existente?.cantidad || 0
-    if (producto.stock <= cantidadActual) {
-      avisar(producto.stock === 0 ? 'El producto está agotado.' : 'La cantidad supera el stock disponible.')
-      return
-    }
-    setCarrito((actual) => {
-      const actualExistente = actual.find((item) => item.productoId === producto.id)
-      if (actualExistente) {
-        return actual.map((item) =>
-          item.productoId === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
-        )
+    setCart((current) => {
+      const found = current.find((item) => item.producto_id === product.id)
+      if (found) {
+        return current.map((item) => item.producto_id === product.id ? { ...item, cantidad: item.cantidad + 1 } : item)
       }
-      return [...actual, {
-        productoId: producto.id,
-        codigo: producto.codigo,
-        nombre: producto.nombre,
-        precio: producto.precio,
-        cantidad: 1,
-        requiereReceta: producto.requiereReceta,
-        recetaVerificada: false
-      }]
+      return [...current, { producto_id: product.id, nombre: product.nombre, precio: product.precio, cantidad: 1, stock: product.stock_total }]
     })
-    setBusquedaProducto('')
   }
 
-  const cambiarCantidad = (productoId, valor) => {
-    const cantidad = Number(valor)
-    const producto = productos.find((actual) => actual.id === productoId)
-    if (!Number.isInteger(cantidad) || cantidad <= 0) {
-      avisar('La cantidad debe ser un número entero mayor que cero.')
-      return
+  const updateQuantity = (id, cantidad) => {
+    const item = cart.find((current) => current.producto_id === id)
+    if (item && cantidad > item.stock) {
+      setQuantityError(`No puedes agregar más de ${item.stock} unidades de ${item.nombre}.`)
+    } else {
+      setQuantityError('')
     }
-    if (cantidad > producto.stock) {
-      avisar(`Solo hay ${producto.stock} unidades disponibles.`)
-      return
-    }
-    setCarrito((actual) => actual.map((item) =>
-      item.productoId === productoId ? { ...item, cantidad } : item
-    ))
+    setCart((current) => current.map((item) => item.producto_id === id
+      ? { ...item, cantidad: Math.min(item.stock, Math.max(1, cantidad)) }
+      : item))
   }
 
-  const actualizarUnidad = (productoId, cambio) => {
-    const linea = carrito.find((item) => item.productoId === productoId)
-    cambiarCantidad(productoId, linea.cantidad + cambio)
-  }
-
-  const limpiarVenta = () => {
-    setCarrito([])
-    setClienteId(1)
-    setBusquedaCliente('')
-    setDocumentoCliente('00000000')
-    setComprobante('boleta')
-    setMetodoPago('efectivo')
-    setMontoRecibido('')
-  }
-
-  const cancelarVenta = () => {
-    if (!carrito.length) {
-      limpiarVenta()
+  const submit = async (estado) => {
+    if (!cart.length) {
+      setState((current) => ({ ...current, error: 'Agrega al menos un producto.' }))
       return
     }
-    setModal({ tipo: 'cancelar' })
-  }
-
-  const cobrar = () => {
-    if (!['admin', 'vendedor'].includes(usuario?.rol)) {
-      avisar('Tu rol no tiene permiso para registrar ventas.')
+    if (!turno) {
+      setState((current) => ({ ...current, error: 'TURNO_CERRADO: Debes abrir una caja antes de vender.' }))
       return
     }
-    if (!carrito.length) return
-    if (carrito.some((item) => item.requiereReceta && !item.recetaVerificada)) {
-      avisar('Verifica la receta de cada medicamento que la requiere.')
+    if (estado === 'pagada' && method === 'efectivo' && cash < total) {
+      setState((current) => ({ ...current, error: 'El efectivo recibido no cubre el total.' }))
       return
     }
-    if (comprobante === 'factura' && !/^\d{11}$/.test(documentoCliente)) {
-      avisar('Para emitir una factura, selecciona un cliente con RUC de 11 dígitos.')
-      return
-    }
-    const recibido = metodoPago === 'efectivo' ? Number(montoRecibido) : total
-    if (metodoPago === 'efectivo' && (!Number.isFinite(recibido) || recibido < total)) {
-      avisar('El monto recibido no cubre el total de la venta.')
-      return
-    }
-    const nuevaVenta = {
-      ...crearMarcaTemporalVenta(),
-      clienteId: clienteSeleccionado.id,
-      clienteNombre: clienteSeleccionado.nombre,
-      clienteDocumento: documentoCliente,
-      trabajadorId: usuario.id,
-      trabajador: usuario.nombre,
-      metodoPago,
-      tipoComprobante: comprobante,
-      estado: 'completada',
-      subtotal,
-      igv,
-      total,
-      recibido,
-      vuelto: Math.max(recibido - total, 0),
-      items: carrito.map(({ productoId, codigo, nombre, cantidad, precio }) => ({
-        productoId, codigo, nombre, cantidad, precio
-      }))
-    }
-
-    if (!registrarVenta(nuevaVenta)) {
-      avisar('El stock cambió y ya no alcanza para completar la venta. Revisa el carrito.')
-      return
-    }
-    setVentaSeleccionada(nuevaVenta)
-    setModal({ tipo: 'comprobante' })
-    limpiarVenta()
-    avisar('La venta se registró correctamente.', 'success', 'Venta completada')
-  }
-
-  const ponerEnEspera = () => {
-    if (!carrito.length) {
-      avisar('Agrega al menos un producto antes de poner la venta en espera.')
-      return
-    }
-    avisar('La venta queda disponible solo durante esta sesión.', 'info', 'Venta en espera')
-  }
-
-  cobrarRef.current = cobrar
-  ponerEnEsperaRef.current = ponerEnEspera
-
-  useEffect(() => {
-    const onKeyDown = (evento) => {
-      if (pestana !== 'nueva') return
-      if (evento.key === 'F2') {
-        evento.preventDefault()
-        busquedaRef.current?.focus()
+    setState((current) => ({ ...current, saving: true, error: '', success: '' }))
+    try {
+      await ventasService.crear({
+        cliente_id: clientId ? Number(clientId) : null,
+        comprobante,
+        estado,
+        items: cart.map(({ producto_id, cantidad }) => ({ producto_id, cantidad })),
+        ...(estado === 'pagada' ? { pagos: [{ metodo: method, monto: Number(paid || total) }] } : {})
+      })
+      if (estado === 'espera') {
+        setWaitingSales((current) => [...current, {
+          id: Date.now(),
+          serie_numero: 'B001-DEMO',
+          fecha: ahoraEnLima(),
+          metodo_pago: null,
+          total,
+          estado
+        }])
       }
-      if (evento.key === 'F9') {
-        evento.preventDefault()
-        cobrarRef.current?.()
-      }
-      if (evento.key === 'F6') {
-        evento.preventDefault()
-        ponerEnEsperaRef.current?.()
-      }
+      setCart([])
+      setPaid('')
+      setState({ loading: false, saving: false, error: '', success: estado === 'espera' ? 'Venta guardada en espera.' : `Venta cobrada. Vuelto: ${money(change)}` })
+    } catch (error) {
+      setState((current) => ({ ...current, saving: false, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) }))
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [pestana])
-
-  const ventasVisibles = ventas.filter((venta) => {
-    if (!esAdmin && venta.trabajadorId !== usuario.id) return false
-    const fecha = venta.fecha.slice(0, 10)
-    return (!fechaDesde || fecha >= fechaDesde) && (!fechaHasta || fecha <= fechaHasta)
-  })
-
-  const confirmarAnulacion = () => {
-    if (usuario?.rol !== 'admin') {
-      avisar('Solo el administrador puede anular ventas.')
-      setVentaAnular(null)
-      return
-    }
-    if (anularVenta(ventaAnular?.id)) {
-      avisar('La venta fue anulada y el stock fue restituido.', 'success', 'Venta anulada')
-    }
-    setVentaAnular(null)
   }
 
-  const columnasHistorial = [
-    { header: 'N° de venta', key: 'id', render: (id) => <strong>{id}</strong> },
-    { header: 'Fecha', key: 'fecha', render: (fecha) => new Date(fecha).toLocaleString('es-PE') },
-    { header: 'Cliente', key: 'clienteNombre' },
-    { header: 'Trabajador', key: 'trabajador' },
-    { header: 'Método', key: 'metodoPago', render: (metodo) => metodo.toUpperCase() },
-    { header: 'Total', key: 'total', render: (importe) => <strong>{moneda(importe)}</strong> },
-    {
-      header: 'Estado',
-      key: 'estado',
-      render: (estado) => <Badge variant={estado === 'completada' ? 'success' : 'neutral'}>{estado}</Badge>
-    },
-    {
-      header: 'Acciones',
-      key: 'acciones',
-      render: (_, venta) => (
-        <div className="novasalud-ventas-acciones">
-          <button type="button" className="novasalud-ventas-enlace" onClick={() => setVentaSeleccionada(venta)}>
-            Ver detalle
-          </button>
-          {esAdmin && venta.estado === 'completada' && (
-            <button type="button" className="novasalud-ventas-enlace peligro" onClick={() => setVentaAnular(venta)}
-              aria-label={`Anular venta ${venta.id}`}>
-              Anular
-            </button>
-          )}
-        </div>
-      )
-    }
-  ]
-
-  const seleccionarCliente = (cliente) => {
-    setClienteId(cliente.id)
-    setBusquedaCliente(cliente.nombre)
-    setDocumentoCliente(cliente.documento)
-    setMostrarClientes(false)
-  }
-
+  if (state.loading) return <div className="shared-card ventas-loading">Cargando punto de venta...</div>
   return (
-    <section className="novasalud-ventas">
-      {toast && <div className="novasalud-ventas-toast"><Toast {...toast} onClose={() => setToast(null)} /></div>}
-      <header className="novasalud-ventas-encabezado">
-        <div>
-          <p className="novasalud-ventas-eyebrow">OPERACIONES</p>
-          <h1>Ventas</h1>
-          <p>Registra ventas, controla el stock y consulta el historial.</p>
-        </div>
-        <Badge variant="primary">Punto de venta</Badge>
-      </header>
-
-      <nav className="novasalud-ventas-pestanas" aria-label="Secciones de ventas">
-        <button type="button" className={pestana === 'nueva' ? 'activa' : ''} onClick={() => setPestana('nueva')}>Nueva venta</button>
-        <button type="button" className={pestana === 'historial' ? 'activa' : ''} onClick={() => setPestana('historial')}>Historial</button>
-      </nav>
-
-      {pestana === 'nueva' ? (
-        <div className="novasalud-ventas-pos">
-          <div className="novasalud-ventas-columna-principal">
-            <section className="novasalud-ventas-panel">
-              <div className="novasalud-ventas-titulo-panel">
-                <div><h2>Buscar producto</h2><p>Busca por nombre, código o escanea el código de barras.</p></div>
-                <span className="novasalud-ventas-atajo">F2</span>
-              </div>
-              <div className="novasalud-ventas-busqueda-producto">
-                <input id="novasalud-busqueda-producto" ref={busquedaRef} className="novasalud-ventas-input"
-                  value={busquedaProducto} onChange={(evento) => {
-                    setBusquedaProducto(evento.target.value)
-                    setMostrarDisponibles(false)
-                  }}
-                  onKeyDown={(evento) => {
-                    if (evento.key === 'Enter') {
-                      evento.preventDefault()
-                      const coincidencia = productos.find((producto) =>
-                        normalizar(producto.codigo) === normalizar(busquedaProducto) ||
-                        normalizar(producto.nombre) === normalizar(busquedaProducto)
-                      ) || coincidenciasProducto[0]
-                      agregarProducto(coincidencia)
-                    }
-                  }}                   placeholder="Nombre, código o escanea el código de barras" autoComplete="off" />
-                <button
-                  type="button"
-                  className="novasalud-ventas-disponibles-btn"
-                  onClick={() => setMostrarDisponibles((actual) => !actual)}
-                  aria-expanded={mostrarDisponibles}
-                >
-                  {mostrarDisponibles ? 'Ocultar disponibles' : 'Ver disponibles'}
-                </button>
-              </div>
-              <div className="novasalud-ventas-productos-rapidos">
-                {productosRapidos.map((producto) => (
-                  <button type="button" key={producto.id} onClick={() => agregarProducto(producto)}>
-                    {producto.nombre}
+    <div className="ventas-page">
+      <PageHeader title="Punto de Venta" subtitle="Busca productos y agrégalos al carrito." />
+      {state.error && <div className="ventas-feedback error" role="alert">{state.error}</div>}
+      {state.success && <div className="ventas-feedback success" role="status">{state.success}</div>}
+      <div className="ventas-layout">
+        <div className="ventas-main-column">
+          <section className="shared-card ventas-products-card">
+            <div className="ventas-section-heading">
+              <div><h2>Buscar productos</h2><p>Selecciona un producto para añadirlo al carrito.</p></div>
+              <Badge variant="neutral">{products.length} resultados</Badge>
+            </div>
+            <SearchBar value={query} onChange={setQuery} placeholder="Buscar por nombre o código..." showScannerBadge={false} autoFocus={false} />
+            <div className="ventas-product-grid">
+              {products.length === 0 ? <EmptyState icon="⌕" title="No se encontraron productos" /> : products.map((product) => {
+                const disabled = ['agotado', 'vencido'].includes(product.estado)
+                const status = product.estado === 'normal'
+                  ? { label: `Stock ${product.stock_total}`, variant: 'success' }
+                  : product.estado === 'stock_bajo'
+                    ? { label: `Stock bajo · ${product.stock_total}`, variant: 'warning' }
+                    : product.estado === 'por_vencer'
+                      ? { label: `Por vencer · ${product.stock_total}`, variant: 'warning' }
+                      : product.estado === 'agotado'
+                        ? { label: 'Agotado', variant: 'neutral' }
+                        : { label: 'Vencido', variant: 'danger' }
+                return (
+                  <button className="ventas-product-card" type="button" key={product.id} onClick={() => addProduct(product)} disabled={disabled}>
+                    <strong>{product.nombre}</strong>
+                    <span>{product.presentacion}</span>
+                    <b>{money(product.precio)}</b>
+                    <Badge variant={status.variant}>{status.label}</Badge>
                   </button>
+                )
+              })}
+            </div>
+          </section>
+
+          <section className="shared-card ventas-cart-card">
+            <div className="ventas-section-heading">
+              <div><h2>Carrito</h2><p>Revisa los productos antes de cobrar.</p></div>
+              <Badge variant="neutral">{cart.length} {cart.length === 1 ? 'producto' : 'productos'}</Badge>
+            </div>
+            {quantityError && <div className="ventas-inline-error" role="alert">{quantityError}</div>}
+            {cart.length === 0 ? (
+              <EmptyState icon="🛒" title="El carrito está vacío." description="Busca un producto o presiona F2." />
+            ) : (
+              <div className="ventas-cart-table">
+                <div className="ventas-cart-header"><span>Producto</span><span>Cantidad</span><span>Precio</span><span>Subtotal</span><span aria-hidden="true" /></div>
+                {cart.map((item) => (
+                  <div className="ventas-cart-row" key={item.producto_id}>
+                    <div className="ventas-cart-product"><strong>{item.nombre}</strong><small>Stock disponible: {item.stock}</small></div>
+                    <div className="ventas-quantity">
+                      <button type="button" aria-label="Disminuir cantidad" onClick={() => updateQuantity(item.producto_id, item.cantidad - 1)} disabled={item.cantidad <= 1}>−</button>
+                      <input aria-label={`Cantidad de ${item.nombre}`} type="number" min="1" max={item.stock} value={item.cantidad} onChange={(event) => updateQuantity(item.producto_id, Number(event.target.value))} />
+                      <button type="button" aria-label="Aumentar cantidad" onClick={() => updateQuantity(item.producto_id, item.cantidad + 1)} disabled={item.cantidad >= item.stock}>+</button>
+                    </div>
+                    <span>{money(item.precio)}</span>
+                    <strong>{money(item.precio * item.cantidad)}</strong>
+                    <button className="ventas-remove" type="button" aria-label="Quitar" onClick={() => setCart((current) => current.filter((entry) => entry.producto_id !== item.producto_id))}>×</button>
+                  </div>
                 ))}
               </div>
-              {(busquedaProducto || mostrarDisponibles) && (
-                <div className="novasalud-ventas-resultados">
-                  {(mostrarDisponibles ? productosDisponibles : coincidenciasProducto).length ? (mostrarDisponibles ? productosDisponibles : coincidenciasProducto).map((producto) => {
-                    const estado = estadoProducto(producto)
-                    return (
-                      <button key={producto.id} type="button"
-                        className="novasalud-ventas-resultado" onClick={() => agregarProducto(producto)}>
-                        <span><strong>{producto.nombre}</strong><small>{producto.codigo} · Stock: {producto.stock}</small></span>
-                        <span className="novasalud-ventas-resultado-derecha"><strong>{moneda(producto.precio)}</strong><Badge variant={estado.variante} size="sm">{estado.texto}</Badge></span>
-                      </button>
-                    )
-                  }) : <p className="novasalud-ventas-sin-resultados">{mostrarDisponibles ? 'No hay productos disponibles en stock.' : 'No hay productos que coincidan.'}</p>}
-                </div>
-              )}
-              <div className="novasalud-ventas-tip">Los productos vencidos o agotados no se pueden agregar.</div>
-            </section>
-
-              <section className="novasalud-ventas-panel novasalud-ventas-carrito-panel">
-                <div className="novasalud-ventas-titulo-panel">
-                  <div><h2>Carrito</h2><p>{carrito.length} {carrito.length === 1 ? 'producto' : 'productos'}</p></div>
-                </div>
-                {carrito.length ? (
-                  <div className="novasalud-ventas-carrito">
-                    <div className="novasalud-ventas-tabla-cabecera"><span>Producto</span><span>Cantidad</span><span>Precio</span><span>Subtotal</span><span></span></div>
-                    <div className="novasalud-ventas-lineas">
-                      {carrito.map((item) => {
-                        const producto = productos.find((actual) => actual.id === item.productoId)
-                        return (
-                          <article className="novasalud-ventas-linea" key={item.productoId}>
-                            <div className="novasalud-ventas-producto-info">
-                              <strong>{item.nombre}</strong>
-                              <small>{item.codigo} · Vence {producto?.fechaVencimiento || 'No registrado'}</small>
-                              {item.requiereReceta && <label className="novasalud-ventas-receta-badge">
-                                <input type="checkbox" checked={item.recetaVerificada}
-                                  onChange={(evento) => setCarrito((actual) => actual.map((linea) => linea.productoId === item.productoId ? { ...linea, recetaVerificada: evento.target.checked } : linea))} />
-                                Receta
-                              </label>}
-                            </div>
-                            <div className="novasalud-ventas-cantidad">
-                              <button type="button" aria-label={`Restar ${item.nombre}`} onClick={() => actualizarUnidad(item.productoId, -1)}>−</button>
-                              <input aria-label={`Cantidad de ${item.nombre}`} type="number" min="1" value={item.cantidad} onChange={(evento) => cambiarCantidad(item.productoId, evento.target.value)} />
-                              <button type="button" aria-label={`Sumar ${item.nombre}`} onClick={() => actualizarUnidad(item.productoId, 1)}>+</button>
-                            </div>
-                            <span>{moneda(item.precio)}</span>
-                            <strong>{moneda(item.precio * item.cantidad)}</strong>
-                            <button type="button" className="novasalud-ventas-quitar" aria-label={`Quitar ${item.nombre}`} onClick={() => setCarrito((actual) => actual.filter((linea) => linea.productoId !== item.productoId))}>×</button>
-                          </article>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="novasalud-ventas-carrito-vacio"><span aria-hidden="true">⌕</span><strong>Presiona F2 para buscar</strong><p>Agrega productos disponibles para iniciar la venta.</p></div>
-                )}
-              </section>
-          </div>
-
-          <aside className="novasalud-ventas-panel novasalud-ventas-cobro">
-              <div className="novasalud-ventas-titulo-panel"><div><h2>Cliente</h2><p>Datos para el comprobante.</p></div></div>
-              <label className="novasalud-ventas-label" htmlFor="novasalud-cliente">Cliente</label>
-              <div className="novasalud-ventas-cliente-selector">
-                <input id="novasalud-cliente" className="novasalud-ventas-input"
-                  value={mostrarClientes ? busquedaCliente : (busquedaCliente || clienteSeleccionado?.nombre || '')}
-                  onFocus={() => { setMostrarClientes(true); setBusquedaCliente('') }}
-                  onChange={(evento) => { setBusquedaCliente(evento.target.value); setMostrarClientes(true) }}
-                  placeholder="Nombre o documento" autoComplete="off" />
-                {mostrarClientes && (
-                  <div className="novasalud-ventas-clientes-opciones">
-                    {clientes.filter((cliente) => cliente.estado === 'activo' &&
-                      normalizar(`${cliente.nombre} ${cliente.documento}`).includes(normalizar(busquedaCliente)))
-                      .slice(0, 6).map((cliente) => (
-                        <button key={cliente.id} type="button" onClick={() => seleccionarCliente(cliente)}>
-                          <span>{cliente.nombre}</span><small>{cliente.documento}</small>
-                        </button>
-                      ))}
-                    {!clientes.some((cliente) => cliente.estado === 'activo' &&
-                      normalizar(`${cliente.nombre} ${cliente.documento}`).includes(normalizar(busquedaCliente))) &&
-                      <p>No se encontraron clientes activos.</p>}
-                  </div>
-                )}
-              </div>
-            <label className="novasalud-ventas-label" htmlFor="novasalud-documento">Documento {comprobante === 'factura' ? '(RUC)' : '(DNI opcional)'}</label>
-            <input id="novasalud-documento" className="novasalud-ventas-input" value={documentoCliente} onChange={(evento) => setDocumentoCliente(evento.target.value.replace(/\D/g, ''))} maxLength={comprobante === 'factura' ? 11 : 8} placeholder={comprobante === 'factura' ? 'RUC de 11 dígitos' : 'DNI de 8 dígitos'} />
-            <label className="novasalud-ventas-label">Comprobante</label>
-            <div className="novasalud-ventas-opciones">
-              {['boleta', 'factura'].map((tipo) => (
-                <button type="button" className={comprobante === tipo ? 'activo' : ''} key={tipo} onClick={() => setComprobante(tipo)}>{tipo[0].toUpperCase() + tipo.slice(1)}</button>
-              ))}
-            </div>
-            {comprobante === 'factura' && <p className="novasalud-ventas-aviso">La factura requiere un RUC de 11 dígitos.</p>}
-            <label className="novasalud-ventas-label">Método de pago</label>
-            <div className="novasalud-ventas-opciones cuatro">
-              {['efectivo', 'yape', 'plin', 'tarjeta'].map((metodo) => (
-                <button type="button" className={metodoPago === metodo ? 'activo' : ''} key={metodo} onClick={() => setMetodoPago(metodo)}>{metodo[0].toUpperCase() + metodo.slice(1)}</button>
-              ))}
-            </div>
-            {metodoPago === 'efectivo' && (
-              <>
-                <label className="novasalud-ventas-label" htmlFor="novasalud-recibido">Monto recibido</label>
-                <input id="novasalud-recibido" className="novasalud-ventas-input" type="number" min="0" step="0.01" value={montoRecibido} onChange={(evento) => setMontoRecibido(evento.target.value)} placeholder="S/ 0.00" />
-                <div className="novasalud-ventas-montos-rapidos">
-                  {[total, 10, 20, 50, 100].map((monto) => <button type="button" key={monto} onClick={() => setMontoRecibido(String(monto))}>{monto === total ? 'Exacto' : moneda(monto)}</button>)}
-                </div>
-              </>
             )}
-            <div className="novasalud-ventas-resumen">
-              <div><span>Subtotal</span><span>{moneda(subtotal)}</span></div>
-              <div><span>IGV 18%</span><span>{moneda(igv)}</span></div>
-              {metodoPago === 'efectivo' && <div><span>Vuelto</span><span>{moneda(Math.max(Number(montoRecibido || 0) - total, 0))}</span></div>}
-              <div className="novasalud-ventas-total"><strong>TOTAL</strong><strong>{moneda(total)}</strong></div>
-            </div>
-            <div className="novasalud-ventas-cobro-botones">
-              <Button variant="success" onClick={cobrar} disabled={!carrito.length}>Cobrar · F9</Button>
-              <Button variant="outline" onClick={ponerEnEspera}>Poner en espera · F6</Button>
-              <Button variant="ghost" onClick={cancelarVenta}>Cancelar venta</Button>
-            </div>
-          </aside>
+          </section>
+
+          <section className="shared-card ventas-waiting-card">
+            <div className="ventas-section-heading"><div><h2>Ventas en espera</h2><p>Continúa o descarta ventas guardadas.</p></div><Badge variant="neutral">{waitingSales.length}</Badge></div>
+            {waitingSales.length === 0 ? <EmptyState icon="◷" title="No hay ventas en espera." /> : waitingSales.map((sale) => (
+              <div className="ventas-waiting-row" key={sale.id}>
+                <div><strong>{sale.serie_numero}</strong><span>{formatFecha(sale.fecha)} · {formatHora(sale.fecha)}</span></div>
+                <strong>{money(sale.total)}</strong>
+                <div className="ventas-waiting-actions">
+                  <Button size="sm" loading={rowAction?.id === sale.id && rowAction.action === 'cobrar'} disabled={Boolean(rowAction)} onClick={async () => {
+                    setRowAction({ id: sale.id, action: 'cobrar' })
+                    try { await ventasService.cobrar(sale.id, [{ metodo: 'efectivo', monto: Number(sale.total) }]); setWaitingSales((current) => current.filter((item) => item.id !== sale.id)) } catch (error) { setState((current) => ({ ...current, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) })) } finally { setRowAction(null) }
+                  }}>Cobrar</Button>
+                  <Button size="sm" variant="outline" loading={rowAction?.id === sale.id && rowAction.action === 'descartar'} disabled={Boolean(rowAction)} onClick={async () => {
+                    setRowAction({ id: sale.id, action: 'descartar' })
+                    try { await ventasService.descartar(sale.id); setWaitingSales((current) => current.filter((item) => item.id !== sale.id)) } catch (error) { setState((current) => ({ ...current, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) })) } finally { setRowAction(null) }
+                  }}>Descartar</Button>
+                </div>
+              </div>
+            ))}
+          </section>
         </div>
-      ) : (
-        <section className="novasalud-ventas-panel">
-          <div className="novasalud-ventas-titulo-panel">
-            <div><h2>Historial de ventas</h2><p>{esAdmin ? 'Consulta todas las ventas registradas.' : 'Consulta tus ventas registradas.'}</p></div>
+
+        <aside className="shared-card ventas-checkout-card">
+          <div className="ventas-section-heading"><div><h2>Cobro</h2><p>Completa los datos de la venta.</p></div></div>
+          <div className="ventas-checkout-form">
+            <Field id="venta-cliente" label="Cliente (opcional)">
+              <select id="venta-cliente" value={clientId} onChange={(event) => setClientId(event.target.value)}>
+                <option value="">Sin cliente</option>
+                {clients.map((client) => <option key={client.id} value={client.id}>{client.nombre} - {client.numero_doc}</option>)}
+              </select>
+            </Field>
+            <div className="ventas-field-group"><span className="ventas-field-label">Comprobante</span><div className="ventas-segmented">{['boleta', 'factura'].map((value) => <button key={value} type="button" className={comprobante === value ? 'active' : ''} onClick={() => setComprobante(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></div>
+            <div className="ventas-field-group"><span className="ventas-field-label">Método de pago</span><div className="ventas-segmented payment">{paymentMethods.map((value) => <button key={value} type="button" className={method === value ? 'active' : ''} onClick={() => setMethod(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></div>
+            {method === 'efectivo' && <Field id="venta-efectivo" label="Efectivo recibido"><input id="venta-efectivo" type="number" min="0" step="0.01" value={paid} onChange={(event) => setPaid(event.target.value)} /><div className="ventas-quick-amounts">{[total, 10, 20, 50].map((amount, index) => <button type="button" key={`${amount}-${index}`} onClick={() => setPaid(String(amount))}>{index === 0 ? 'Exacto' : money(amount)}</button>)}</div></Field>}
           </div>
-          {esAdmin && <div className="novasalud-ventas-filtros">
-            <label>Desde <input type="date" value={fechaDesde} onChange={(evento) => setFechaDesde(evento.target.value)} /></label>
-            <label>Hasta <input type="date" value={fechaHasta} onChange={(evento) => setFechaHasta(evento.target.value)} /></label>
-            <Button size="sm" variant="outline" onClick={() => { setFechaDesde(''); setFechaHasta('') }}>Limpiar fechas</Button>
-          </div>}
-          <Table columns={columnasHistorial} data={ventasVisibles} emptyMessage="No hay ventas en el periodo seleccionado." />
-        </section>
-      )}
-
-      <Modal isOpen={modal?.tipo === 'cancelar'} onClose={() => setModal(null)} title="Cancelar venta" size="sm"
-        footer={<><Button variant="outline" onClick={() => setModal(null)}>Seguir vendiendo</Button>
-          <Button variant="danger" onClick={() => { limpiarVenta(); setModal(null) }}>Descartar venta</Button></>}>
-        <p>¿Seguro que deseas cancelar esta venta? Se perderán los productos del carrito.</p>
-      </Modal>
-
-      <Modal isOpen={modal?.tipo === 'comprobante'} onClose={() => { setModal(null); setVentaSeleccionada(null) }} title="Comprobante de venta" size="md"
-        footer={<><Button variant="outline" onClick={() => window.print()}>Imprimir comprobante</Button><Button onClick={() => { setModal(null); setVentaSeleccionada(null) }}>Cerrar</Button></>}>
-        {ventaSeleccionada && <div className="novasalud-ventas-comprobante">
-          <div className="novasalud-ventas-comprobante-cabecera"><strong>Nova Salud</strong><span>{ventaSeleccionada.tipoComprobante.toUpperCase()}</span></div>
-          <p>N° {ventaSeleccionada.id} · {new Date(ventaSeleccionada.fecha).toLocaleString('es-PE')}</p>
-          <p>Cliente: {ventaSeleccionada.clienteNombre} · {ventaSeleccionada.clienteDocumento}</p>
-          {ventaSeleccionada.items.map((item) => <div className="novasalud-ventas-comprobante-linea" key={item.productoId}>
-            <span>{item.nombre} × {item.cantidad}</span><span>{moneda(item.precio * item.cantidad)}</span>
-          </div>)}
-          <div className="novasalud-ventas-comprobante-linea"><span>Subtotal</span><span>{moneda(ventaSeleccionada.subtotal)}</span></div>
-          <div className="novasalud-ventas-comprobante-linea"><span>IGV</span><span>{moneda(ventaSeleccionada.igv)}</span></div>
-          <div className="novasalud-ventas-comprobante-linea total"><strong>Total</strong><strong>{moneda(ventaSeleccionada.total)}</strong></div>
-          <p>Pago: {ventaSeleccionada.metodoPago.toUpperCase()} · Recibido: {moneda(ventaSeleccionada.recibido)} · Vuelto: {moneda(ventaSeleccionada.vuelto)}</p>
-        </div>}
-      </Modal>
-
-      <Modal isOpen={Boolean(ventaSeleccionada) && modal?.tipo !== 'comprobante'} onClose={() => setVentaSeleccionada(null)}
-        title={`Detalle ${ventaSeleccionada?.id || ''}`} size="md">
-        {ventaSeleccionada && <div className="novasalud-ventas-detalle">
-          <p><strong>Fecha:</strong> {new Date(ventaSeleccionada.fecha).toLocaleString('es-PE')}</p>
-          <p><strong>Cliente:</strong> {ventaSeleccionada.clienteNombre} ({ventaSeleccionada.clienteDocumento})</p>
-          <p><strong>Trabajador:</strong> {ventaSeleccionada.trabajador}</p>
-          <p><strong>Comprobante:</strong> {ventaSeleccionada.tipoComprobante} · <strong>Pago:</strong> {ventaSeleccionada.metodoPago}</p>
-          <div className="novasalud-ventas-detalle-items">{ventaSeleccionada.items.map((item) => <div key={item.productoId}><span>{item.nombre} × {item.cantidad}</span><strong>{moneda(item.precio * item.cantidad)}</strong></div>)}</div>
-          <p><strong>Total:</strong> {moneda(ventaSeleccionada.total)} · <Badge variant={ventaSeleccionada.estado === 'completada' ? 'success' : 'neutral'}>{ventaSeleccionada.estado}</Badge></p>
-        </div>}
-      </Modal>
-
-      <Modal isOpen={Boolean(ventaAnular)} onClose={() => setVentaAnular(null)} title="Anular venta" size="sm"
-        footer={<><Button variant="outline" onClick={() => setVentaAnular(null)}>Volver</Button>
-          <Button variant="danger" onClick={confirmarAnulacion}>Confirmar anulación</Button></>}>
-        <p>¿Confirmas anular la venta <strong>{ventaAnular?.id}</strong>? Esta acción devolverá sus productos al stock.</p>
-      </Modal>
-    </section>
+          <div className="ventas-summary"><div><span>Subtotal</span><strong>{money(total / 1.18)}</strong></div><div><span>IGV 18%</span><strong>{money(total - total / 1.18)}</strong></div>{method === 'efectivo' && <div><span>Vuelto</span><strong>{money(change)}</strong></div>}<div className="ventas-total"><span>TOTAL</span><strong>{money(total)}</strong></div></div>
+          <div className="ventas-checkout-actions"><Button fullWidth size="lg" disabled={state.saving || !cart.length || (method === 'efectivo' && cash < total)} loading={state.saving} onClick={() => submit('pagada')}>Cobrar</Button><Button fullWidth variant="outline" disabled={state.saving || !cart.length} onClick={() => submit('espera')}>Guardar en espera</Button></div>
+        </aside>
+      </div>
+    </div>
   )
 }
