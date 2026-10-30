@@ -1,72 +1,115 @@
-import { useState } from 'react'
+
+import { useEffect, useState } from 'react'
 import AuthContext from './AuthContext'
-import { usuariosDemo } from '../data/usuarios'
+import { authService } from '../services'
 
 const CLAVE_USUARIO = 'novasalud_usuario'
 const CLAVE_TOKEN = 'novasalud_token'
-const CLAVES_ANTERIORES = ['usuario', 'token']
 
 const leerUsuarioGuardado = () => {
   try {
     const guardado = localStorage.getItem(CLAVE_USUARIO)
-    return guardado ? JSON.parse(guardado) : null
+    const usuario = guardado ? JSON.parse(guardado) : null
+
+    if (!usuario || !['admin', 'trabajador'].includes(usuario.rol)) {
+      localStorage.removeItem(CLAVE_USUARIO)
+      localStorage.removeItem(CLAVE_TOKEN)
+      return null
+    }
+
+    return usuario
   } catch {
+    localStorage.removeItem(CLAVE_USUARIO)
+    localStorage.removeItem(CLAVE_TOKEN)
     return null
   }
 }
 
-const limpiarSesionGuardada = () => {
-  localStorage.removeItem(CLAVE_USUARIO)
-  localStorage.removeItem(CLAVE_TOKEN)
-  CLAVES_ANTERIORES.forEach((clave) => localStorage.removeItem(clave))
-}
-
-/**
- * Proveedor de autenticación simulada para Nova Salud.
- * Valida las cuentas de src/data/usuarios.js y persiste solo
- * los datos públicos de la sesión (nunca la contraseña).
- */
 export function AuthProvider({ children }) {
-  const [usuario, setUsuario] = useState(() => {
-    // Elimina sesiones de la versión anterior para que el login sea obligatorio.
-    CLAVES_ANTERIORES.forEach((clave) => localStorage.removeItem(clave))
-    return leerUsuarioGuardado()
-  })
+  const [usuario, setUsuario] = useState(leerUsuarioGuardado)
+  const [validandoSesion, setValidandoSesion] = useState(
+    () => Boolean(localStorage.getItem(CLAVE_TOKEN))
+  )
 
-  const login = async ({ email, password }) => {
-    // Pequeña espera para mostrar el estado de carga del formulario.
-    await new Promise((resolve) => setTimeout(resolve, 450))
+  useEffect(() => {
+    const token = localStorage.getItem(CLAVE_TOKEN)
 
-    const correo = email.trim().toLowerCase()
-    const cuenta = usuariosDemo.find(
-      (usuarioDemo) => usuarioDemo.email.toLowerCase() === correo
-    )
-
-    if (!cuenta || cuenta.password !== password) {
-      throw new Error('Correo o contraseña incorrectos.')
+    if (!token) {
+      setValidandoSesion(false)
+      return
     }
 
-    const sesion = {
-      id: cuenta.id,
-      nombre: cuenta.nombre,
-      email: cuenta.email,
-      rol: cuenta.rol,
-      cargo: cuenta.cargo,
-      sucursal: cuenta.sucursal
+    let activo = true
+
+    authService.me()
+      .then((response) => {
+        if (!activo) return
+
+        const usuarioActual = response?.usuario
+
+        if (
+          usuarioActual &&
+          ['admin', 'trabajador'].includes(usuarioActual.rol)
+        ) {
+          setUsuario(usuarioActual)
+          localStorage.setItem(
+            CLAVE_USUARIO,
+            JSON.stringify(usuarioActual)
+          )
+        } else {
+          localStorage.removeItem(CLAVE_USUARIO)
+          localStorage.removeItem(CLAVE_TOKEN)
+          setUsuario(null)
+        }
+      })
+      .catch(() => {
+        if (!activo) return
+
+        localStorage.removeItem(CLAVE_USUARIO)
+        localStorage.removeItem(CLAVE_TOKEN)
+        setUsuario(null)
+      })
+      .finally(() => {
+        if (activo) setValidandoSesion(false)
+      })
+
+    return () => {
+      activo = false
+    }
+  }, [])
+
+  const login = async ({ email, password, rolEsperado }) => {
+    const response = await authService.login({ email, password })
+
+    if (!response?.token || !response?.usuario) {
+      throw new Error('La respuesta de autenticación no es válida.')
     }
 
-    localStorage.setItem(CLAVE_USUARIO, JSON.stringify(sesion))
+    const usuarioAutenticado = response.usuario
+
+    if (!['admin', 'trabajador'].includes(usuarioAutenticado.rol)) {
+      throw new Error('El usuario no tiene un rol autorizado.')
+    }
+
+    if (rolEsperado && usuarioAutenticado.rol !== rolEsperado) {
+      throw new Error(
+        'El usuario no corresponde al tipo de acceso seleccionado.'
+      )
+    }
+
+    localStorage.setItem(CLAVE_TOKEN, response.token)
     localStorage.setItem(
-      CLAVE_TOKEN,
-      `mock-jwt-${cuenta.id}-${Date.now()}`
+      CLAVE_USUARIO,
+      JSON.stringify(usuarioAutenticado)
     )
-    setUsuario(sesion)
 
-    return sesion
+    setUsuario(usuarioAutenticado)
+    return usuarioAutenticado
   }
 
   const logout = () => {
-    limpiarSesionGuardada()
+    localStorage.removeItem(CLAVE_USUARIO)
+    localStorage.removeItem(CLAVE_TOKEN)
     setUsuario(null)
   }
 
@@ -77,7 +120,8 @@ export function AuthProvider({ children }) {
         login,
         logout,
         setUsuario,
-        isAuthenticated: Boolean(usuario)
+        isAuthenticated: Boolean(usuario),
+        validandoSesion
       }}
     >
       {children}

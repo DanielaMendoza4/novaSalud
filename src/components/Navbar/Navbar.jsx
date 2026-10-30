@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import AlertBell from '../AlertBell/AlertBell'
+import { useAuth } from '../../context'
 import './Navbar.css'
 
 /**
@@ -8,11 +8,14 @@ import './Navbar.css'
  * Guiado por trabajoPlan.pdf (Paso 4, 7, 10).
  */
 export default function Navbar({
-  onToggleSidebar,
-  user = { nombre: 'Daniel Mendoza', rol: 'admin', sucursal: 'Botica Central' },
+  onToggleCollapse,
+  isSidebarCollapsed = false,
+  user = { nombre: 'Personal Botica', rol: 'trabajador' },
   onLogout,
   alertas
 }) {
+  const { usuario } = useAuth()
+  user = usuario || user
   const [busqueda, setBusqueda] = useState('')
 
   const handleSearchSubmit = (e) => {
@@ -25,8 +28,7 @@ export default function Navbar({
 
   const roleLabels = {
     admin: 'Administrador',
-    vendedor: 'Vendedor (POS)',
-    almacen: 'Encargado Almacén'
+    trabajador: 'Trabajador',
   }
 
   const initials = user?.nombre
@@ -35,28 +37,17 @@ export default function Navbar({
 
   return (
     <header className="novasalud-navbar">
-      {/* Sección Izquierda: Toggle + Logo */}
+      {/* Control del menú lateral */}
       <div className="navbar-left">
         <button
           type="button"
-          className="navbar-toggle-btn"
-          onClick={onToggleSidebar}
-          aria-label="Alternar menú lateral"
+          className="navbar-collapse-btn"
+          onClick={onToggleCollapse}
+          title={isSidebarCollapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'}
+          aria-label={isSidebarCollapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'}
         >
-          <svg className="navbar-toggle-icon" viewBox="0 0 24 24">
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
+          <span aria-hidden="true">{isSidebarCollapsed ? '→' : '←'}</span>
         </button>
-
-        <Link to="/" className="navbar-brand-badge">
-          <div className="navbar-logo-icon">➕</div>
-          <div className="navbar-brand-texts">
-            <span className="navbar-brand-name">Nova Salud</span>
-            <span className="navbar-brand-subtitle">Farmacia & Botica</span>
-          </div>
-        </Link>
 
         <div className="navbar-branch-pill">
           <span className="navbar-branch-dot"></span>

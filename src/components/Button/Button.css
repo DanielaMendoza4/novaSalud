@@ -12,6 +12,7 @@
   outline: none;
   text-decoration: none;
   white-space: nowrap;
+  min-height: 44px;
 }
 
 .novasalud-btn:disabled,
@@ -23,6 +24,7 @@
 
 /* Tamaños */
 .novasalud-btn.sm {
+  min-height: 36px;
   padding: 6px 12px;
   font-size: 12px;
   border-radius: 8px;
@@ -45,13 +47,13 @@
 
 /* Variantes */
 .novasalud-btn.primary {
-  background: #0d9488;
+  background: #0d7f6f;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
 }
 
 .novasalud-btn.primary:not(:disabled):hover {
-  background: #0f766e;
+  background: #096b5e;
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(13, 148, 136, 0.35);
 }

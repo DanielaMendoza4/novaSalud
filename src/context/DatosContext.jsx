@@ -11,7 +11,6 @@ const alertasIniciales = [
     titulo: 'Stock crítico: Paracetamol 500mg',
     descripcion: 'Quedan 3 unidades (mínimo requerido: 15)',
     tiempo: 'Hace 10 min',
-    icono: '⚠️'
   },
   {
     id: 2,
@@ -19,7 +18,6 @@ const alertasIniciales = [
     titulo: 'Por vencer: Amoxicilina 250mg',
     descripcion: 'Lote L-2024 vence en 18 días',
     tiempo: 'Hace 35 min',
-    icono: '⏳'
   },
   {
     id: 3,
@@ -27,7 +25,6 @@ const alertasIniciales = [
     titulo: 'Producto agotado: Ibuprofeno 400mg',
     descripcion: 'Stock en 0. Requiere reposición inmediata',
     tiempo: 'Hace 1 h',
-    icono: '🚫'
   }
 ]
 
@@ -66,7 +63,6 @@ export function DatosProvider({ children }) {
           tipo: stock === 0 ? 'agotado' : 'stock_bajo',
           titulo: `${stock === 0 ? 'Producto agotado' : 'Stock bajo'}: ${producto.nombre}`,
           descripcion: `Quedan ${stock} unidades (mínimo requerido: ${producto.minimo})`,
-          icono: stock === 0 ? '🚫' : '⚠️'
         })
       }
       return {

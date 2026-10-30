@@ -13,10 +13,10 @@ export default function Toast({
   duration = 4000
 }) {
   const icons = {
-    success: '✓',
-    error: '✕',
-    warning: '!',
-    info: 'i'
+    success: 'OK',
+    error: 'Error',
+    warning: 'Aviso',
+    info: 'Info'
   }
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function Toast({
 
   return (
     <div className={`novasalud-toast ${type}`} role="alert">
-      <div className="toast-icon-box">{icons[type] || 'i'}</div>
+      <div className="toast-icon-box">{icons[type] || 'Info'}</div>
       <div className="toast-content">
         {title && <div className="toast-title">{title}</div>}
         {message && <div className="toast-message">{message}</div>}

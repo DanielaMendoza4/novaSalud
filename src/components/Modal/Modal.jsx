@@ -82,7 +82,7 @@ export default function Modal({
             onClick={onClose}
             aria-label="Cerrar modal"
           >
-            ✕
+            Cerrar
           </button>
         </div>
 

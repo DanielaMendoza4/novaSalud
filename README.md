@@ -581,7 +581,7 @@ Componente de página completa, sin props. Usa `useAuth()` y `useNavigate()`.
 | `title` | `string` | — | Título de la tarjeta. |
 | `value` | `string \| number` | — | Valor principal. |
 | `subtitle` | `string` | — | Texto secundario. |
-| `icon` | `string` | `'📈'` | Icono (emoji o texto). |
+| `icon` | `string` | `''` | Icono opcional o texto. |
 | `variant` | `string` | `'primary'` | `primary`, `success`, `warning`, `danger`, `info`. |
 | `trend` | `object` | — | `{ direction: 'up' \| 'down', text: string }`. |
 | `children` | `ReactNode` | — | Contenido adicional. |
@@ -631,7 +631,7 @@ Componente de página completa, sin props. Usa `useAuth()` y `useNavigate()`.
 | `data` | `array` | `[]` | Filas a mostrar. |
 | `isLoading` | `boolean` | `false` | Muestra el estado de carga. |
 | `emptyMessage` | `string` | `'No se encontraron registros...'` | Mensaje sin datos. |
-| `emptyIcon` | `string` | `'📋'` | Icono del estado vacío. |
+| `emptyIcon` | `string` | `''` | Icono opcional del estado vacío. |
 | `renderFooter` | `function` | — | Renderiza el pie con las filas visibles. |
 
 Cada columna acepta:
@@ -672,7 +672,7 @@ Cada columna acepta:
 **Botón con icono y variante:**
 
 ```jsx
-<Button variant="success" icon="🛒" onClick={abrirPOS}>
+<Button variant="success" onClick={abrirPOS}>
   Nueva Venta (F2)
 </Button>
 ```
@@ -700,7 +700,6 @@ const [abierto, setAbierto] = useState(false)
   isOpen={abierto}
   onClose={() => setAbierto(false)}
   title="Nueva Venta"
-  icon="🛒"
   footer={<Button onClick={guardar}>Confirmar</Button>}
 >
   <p>Contenido del modal</p>
@@ -832,7 +831,7 @@ Los clientes y las ventas de muestra están definidos en `src/data/clientes.js` 
 | `titulo` | `string` | `Stock crítico: Paracetamol 500mg` |
 | `descripcion` | `string` | `Quedan 3 unidades (mínimo requerido: 15)` |
 | `tiempo` | `string` | `Hace 10 min` |
-| `icono` | `string` | `⚠️` |
+| `icono` | `string` | `''` |
 
 ### Usuario
 
