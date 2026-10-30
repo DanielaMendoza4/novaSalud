@@ -250,33 +250,6 @@ export default function Inventario() {
         </div>
       )}
 
-      {/* Tarjetas KPI de resumen estadístico */}
-      <div className="inventario-kpi-grid">
-        <div className="inventario-kpi-card accent-teal">
-          <span className="kpi-label">Productos registrados</span>
-          <strong className="kpi-value">{metricas.totalRegistrados}</strong>
-          <span className="kpi-sub">{metricas.totalCategorias} categorías</span>
-        </div>
-
-        <div className="inventario-kpi-card accent-orange">
-          <span className="kpi-label">Stock bajo</span>
-          <strong className="kpi-value">{metricas.stockBajo}</strong>
-          <span className="kpi-sub">{metricas.agotados} agotados</span>
-        </div>
-
-        <div className="inventario-kpi-card accent-red">
-          <span className="kpi-label">Por vencer (30 días)</span>
-          <strong className="kpi-value">{metricas.porVencer}</strong>
-          <span className="kpi-sub">{metricas.vencidos} vencidos por retirar</span>
-        </div>
-
-        <div className="inventario-kpi-card accent-blue">
-          <span className="kpi-label">Valor del inventario</span>
-          <strong className="kpi-value">S/ {metricas.valorInventario.toFixed(2)}</strong>
-          <span className="kpi-sub">A precio de costo</span>
-        </div>
-      </div>
-
       {/* Barra de Búsqueda y Filtros */}
       <div className="inventario-filters-card">
         <div className="inventario-search-wrapper">
@@ -412,9 +385,8 @@ export default function Inventario() {
                         <div className="vencimiento-fecha">{vencimiento.fecha}</div>
                         {vencimiento.relativo && (
                           <div
-                            className={`vencimiento-relativo ${
-                              vencimiento.esVencido ? 'texto-vencido' : ''
-                            }`}
+                            className={`vencimiento-relativo ${vencimiento.esVencido ? 'texto-vencido' : ''
+                              }`}
                           >
                             {vencimiento.relativo}
                           </div>
