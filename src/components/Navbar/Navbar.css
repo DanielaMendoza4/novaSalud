@@ -1,7 +1,7 @@
 .novasalud-navbar {
   position: sticky;
   top: 0;
-  z-index: 900;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -45,10 +45,9 @@
   box-shadow: 0 2px 8px rgba(13, 148, 136, 0.15);
 }
 
-@media (max-width: 1024px) {
-  .navbar-collapse-btn {
-    display: none;
-  }
+.navbar-collapse-btn:focus-visible {
+  outline: 2px solid #0d9488;
+  outline-offset: 2px;
 }
 
 .navbar-branch-pill {
@@ -147,82 +146,4 @@
   display: flex;
   align-items: center;
   gap: 14px;
-}
-
-.navbar-user-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 8px 5px 5px;
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.navbar-user-chip:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-}
-
-.navbar-user-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #14b8a6, #0284c7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.navbar-user-info {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.navbar-user-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1e293b;
-  line-height: 1.2;
-}
-
-.navbar-user-role {
-  font-size: 11px;
-  color: #64748b;
-  text-transform: capitalize;
-}
-
-.navbar-logout-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: transparent;
-  border: 1px solid #fee2e2;
-  border-radius: 12px;
-  color: #ef4444;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.navbar-logout-btn:hover {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.15);
-}
-
-.navbar-logout-icon {
-  width: 18px;
-  height: 18px;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
 }

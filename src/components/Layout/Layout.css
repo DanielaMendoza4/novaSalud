@@ -14,12 +14,14 @@
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Sidebar contraído: queda una barra de 80px con solo íconos */
 .layout-main-wrapper.sidebar-collapsed {
-  margin-left: 0;
+  margin-left: 80px;
 }
 
 @media (max-width: 1024px) {
-  .layout-main-wrapper {
+  .layout-main-wrapper,
+  .layout-main-wrapper.sidebar-collapsed {
     margin-left: 0 !important;
   }
 }
@@ -72,4 +74,33 @@
 
 .layout-footer-link:hover {
   color: #0d9488;
+}
+
+/* Botón de menú flotante: solo en pantallas pequeñas */
+.layout-mobile-menu-btn {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .layout-mobile-menu-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 90;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+    cursor: pointer;
+  }
+
+  /* deja espacio arriba para que el botón no tape el contenido */
+  .layout-content-area {
+    padding-top: 76px;
+  }
 }
