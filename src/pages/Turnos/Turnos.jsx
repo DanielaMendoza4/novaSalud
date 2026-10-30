@@ -11,6 +11,7 @@ import { mensajeDeError } from '../../utils/errores'
 import './Turnos.css'
 
 const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
+const texto = (value) => (value ? value : '—')
 
 export default function Turnos() {
   const [turno, setTurno] = useState(null)
@@ -60,6 +61,8 @@ export default function Turnos() {
               <Badge variant="success" dot>Abierto</Badge>
             </div>
             <div className="turnos-details">
+              <div><span>Cajero (DNI)</span><strong>{texto(turno.usuario_dni)}</strong></div>
+              <div><span>Turno</span><strong className="turnos-capitalize">{texto(turno.franja)}</strong></div>
               <div><span>Apertura</span><strong>{formatFechaHora(turno.apertura)}</strong></div>
               <div><span>Fondo inicial</span><strong className="turnos-money">{money(turno.fondo_inicial)}</strong></div>
             </div>
@@ -71,7 +74,7 @@ export default function Turnos() {
             </div>
           </>
         ) : (
-          <EmptyState icon="+" title="No hay un turno abierto" description="Abre tu caja para comenzar a registrar ventas.">
+          <EmptyState icon="+" title="No hay un turno abierto" description="Abre tu caja para comenzar a registrar ventas. Se registrarán tu DNI y la hora de apertura automáticamente.">
             <div className="turnos-open-form">
               <Field id="fondo-inicial" label="Fondo inicial">
                 <div className="turnos-money-input"><span>S/</span><input id="fondo-inicial" type="number" min="0" step="0.01" value={fondo} onChange={(event) => setFondo(event.target.value)} /></div>
@@ -83,6 +86,9 @@ export default function Turnos() {
         {resultado?.diferencia !== undefined && (
           <div className={`turnos-result ${resultado.diferencia === 0 ? 'balanced' : 'unbalanced'}`}>
             <h3>Turno cerrado</h3>
+            <div><span>Cajero (DNI)</span><strong>{texto(resultado.usuario_dni)}</strong></div>
+            <div><span>Apertura</span><strong>{formatFechaHora(resultado.apertura)}</strong></div>
+            <div><span>Cierre</span><strong>{formatFechaHora(resultado.cierre)}</strong></div>
             <div><span>Efectivo esperado</span><strong>{money(resultado.efectivo_esperado)}</strong></div>
             <div><span>Efectivo contado</span><strong>{money(resultado.efectivo_contado)}</strong></div>
             <div><span>Diferencia</span><strong>{money(resultado.diferencia)}</strong></div>
@@ -90,7 +96,7 @@ export default function Turnos() {
         )}
       </section>
       <Modal isOpen={confirmClose} onClose={() => setConfirmClose(false)} title="¿Cerrar caja?" footer={<><Button variant="outline" onClick={() => setConfirmClose(false)}>Cancelar</Button><Button onClick={() => ejecutar(() => turnosService.cerrar(Number(contado)))} loading={state.saving}>Confirmar cierre</Button></>}>
-        <p>Vas a cerrar el turno con un efectivo contado de <strong>{money(contado)}</strong>. Esta acción registrará el cierre de caja.</p>
+        <p>Vas a cerrar el turno con un efectivo contado de <strong>{money(contado)}</strong>. Se registrará la hora de cierre automáticamente.</p>
       </Modal>
     </div>
   )
