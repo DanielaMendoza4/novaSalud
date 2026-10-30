@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import Navbar from '../Navbar/Navbar'
 import Sidebar from '../Sidebar/Sidebar'
 import './Layout.css'
 
@@ -8,7 +7,7 @@ const CURRENT_YEAR = new Date().getFullYear()
 
 /**
  * Componente Layout: Envoltorio principal de la aplicación.
- * Conecta Navbar, Sidebar y la zona de contenido dinámico.
+ * Conecta el Sidebar y la zona de contenido dinámico.
  * Guiado por trabajoPlan.pdf (Paso 7, 9).
  */
 export default function Layout({
@@ -35,7 +34,10 @@ export default function Layout({
         isOpen={isSidebarMobileOpen}
         onClose={closeMobileSidebar}
         isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleCollapseSidebar}
         alertCount={alertas?.length ?? 3}
+        user={user}
+        onLogout={onLogout}
       />
 
       {/* Contenedor principal con margen dinámico */}
@@ -44,14 +46,18 @@ export default function Layout({
           isSidebarCollapsed ? 'sidebar-collapsed' : ''
         }`}
       >
-        {/* Barra de cabecera */}
-        <Navbar
-          onToggleCollapse={toggleCollapseSidebar}
-          isSidebarCollapsed={isSidebarCollapsed}
-          user={user}
-          onLogout={onLogout}
-          alertas={alertas}
-        />
+        {/* Botón de menú: solo visible en pantallas pequeñas */}
+        <button
+          type="button"
+          className="layout-mobile-menu-btn"
+          onClick={() => setIsSidebarMobileOpen(true)}
+          aria-label="Abrir menú"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+               strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
 
         {/* Área de vistas / páginas */}
         <main className="layout-content-area">

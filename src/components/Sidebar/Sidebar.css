@@ -1,221 +1,245 @@
-.novasalud-sidebar {
+/* ===== Base (escritorio, expandido) ===== */
+.sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  bottom: 0;
+  z-index: 200;
   width: 260px;
-  background: #0f172a; /* Slate 900 */
-  color: #f8fafc;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  z-index: 1000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0b1a2e;
+  color: #cbd5e1;
+  transition: width 0.25s ease, transform 0.25s ease;
+  /* sin overflow: si no, los tooltips y el botón circular se cortan */
 }
 
-.novasalud-sidebar.collapsed {
-  width: 0;
-  overflow: hidden;
-  border-right: 0;
-  box-shadow: none;
-}
-
-@media (max-width: 1024px) {
-  .novasalud-sidebar {
-    transform: translateX(-100%);
-  }
-  .novasalud-sidebar.mobile-open {
-    transform: translateX(0);
-  }
-}
-
-.sidebar-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.sidebar-backdrop.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Header */
+/* ===== Logo + botón de contraer ===== */
 .sidebar-header {
-  height: 90px;
+  position: relative;
+  height: 88px;
   padding: 0 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
+.sidebar-logo {
+  width: 100%;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 10px;
+}
 
-.sidebar-brand {
+.sidebar-toggle {
+  position: absolute;
+  top: 30px;
+  right: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #0f172a;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 210;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.sidebar-toggle .sb-icon { width: 16px; height: 16px; transition: transform 0.25s; }
+
+.sidebar-section {
+  padding: 22px 24px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+}
+
+/* ===== Menú ===== */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px 0;
+}
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.sidebar-link:hover { background: rgba(255, 255, 255, 0.06); }
+.sidebar-link.active {
+  background: rgba(20, 184, 166, 0.16);
+  color: #fff;
+  font-weight: 700;
+}
+.sidebar-link.active .sb-icon { color: #5eead4; }
+
+/* Sin aro blanco al hacer clic; el foco por teclado sí se ve */
+.sidebar-link:focus,
+.sidebar-logout:focus,
+.sidebar-toggle:focus { outline: none; }
+.sidebar-link:focus-visible,
+.sidebar-logout:focus-visible,
+.sidebar-toggle:focus-visible { outline: 2px solid #5eead4; outline-offset: 2px; }
+
+.sb-icon { width: 20px; height: 20px; flex: none; }
+
+.sb-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.1);
+}
+.sb-badge-red { color: #fff; background: #dc2626; }
+
+/* ===== Footer: usuario + cerrar sesión ===== */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sidebar-user {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+.sidebar-avatar {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0d9488, #0891b2);
+  color: #fff;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.sidebar-user-info { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.sidebar-user-name {
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-user-role { color: #94a3b8; font-size: 12px; }
+
+.sidebar-logout {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  text-decoration: none;
-  color: #ffffff;
-  overflow: hidden;
-}
-
-.sidebar-logo-image {
-  display: block;
-  width: 220px;
-  height: auto;
-  max-width: 100%;
-  object-fit: contain;
-}
-
-.sidebar-close-mobile-btn {
-  display: none;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.5);
   background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 20px;
+  color: #fca5a5;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
   cursor: pointer;
-  padding: 4px;
+  transition: background 0.2s;
 }
+.sidebar-logout:hover { background: rgba(239, 68, 68, 0.12); }
 
-@media (max-width: 1024px) {
-  .sidebar-close-mobile-btn {
-    display: block;
+.sidebar-status {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 0 4px;
+}
+.sidebar-status-dot { color: #22c55e; }
+
+/* ===== Contraído (solo escritorio) ===== */
+@media (min-width: 1025px) {
+  .sidebar.collapsed { width: 80px; }
+
+  .sidebar.collapsed .sidebar-header { padding: 0 12px; }
+  .sidebar.collapsed .sidebar-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    object-position: left center;   /* muestra solo el ícono del logo */
+  }
+  .sidebar.collapsed .sidebar-toggle .sb-icon { transform: rotate(180deg); }
+
+  .sidebar.collapsed .sb-label,
+  .sidebar.collapsed .sb-badge { display: none; }
+
+  .sidebar.collapsed .sidebar-link,
+  .sidebar.collapsed .sidebar-logout,
+  .sidebar.collapsed .sidebar-user { justify-content: center; }
+
+  /* puntito rojo de alerta en lugar del número */
+  .sidebar.collapsed .sidebar-link:has(.sb-badge-red)::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #dc2626;
+    border: 2px solid #0b1a2e;
+  }
+
+  /* Tooltip con el nombre del módulo al pasar el puntero o con foco de teclado */
+  .sidebar.collapsed .sidebar-link:hover::after,
+  .sidebar.collapsed .sidebar-link:focus-visible::after,
+  .sidebar.collapsed .sidebar-logout:hover::after,
+  .sidebar.collapsed .sidebar-logout:focus-visible::after,
+  .sidebar.collapsed .sidebar-user:hover::after {
+    content: attr(data-label);
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    z-index: 300;
+    pointer-events: none;
   }
 }
 
-/* Navigation */
-.sidebar-nav {
-  flex: 1;
-  padding: 18px 12px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* ===== Móvil / tablet: el sidebar se desliza desde la izquierda ===== */
+@media (max-width: 1024px) {
+  .sidebar { transform: translateX(-100%); width: 260px; }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .sidebar-toggle { display: none; }
 }
 
-.sidebar-nav-label {
-  padding: 8px 12px 4px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #64748b;
-  white-space: nowrap;
-}
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  color: #94a3b8;
-  text-decoration: none;
-  font-size: 13.5px;
-  font-weight: 600;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  white-space: nowrap;
-}
-
-.sidebar-link:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.sidebar-link.active {
-  color: #ffffff;
-  background: linear-gradient(90deg, rgba(13, 148, 136, 0.25) 0%, rgba(13, 148, 136, 0.08) 100%);
-  border-left: 3px solid #2dd4bf;
-  padding-left: 11px;
-}
-
-.sidebar-icon {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  transition: transform 0.2s ease;
-}
-
-.sidebar-link:hover .sidebar-icon {
-  transform: scale(1.1);
-}
-
-.sidebar-link.active .sidebar-icon {
-  color: #2dd4bf;
-}
-
-.sidebar-link-text {
-  flex: 1;
-  font-weight: 600;
-}
-
-.sidebar-badge {
-  padding: 2px 7px;
-  font-size: 10px;
-  font-weight: 700;
-  border-radius: 9999px;
-  line-height: 1.2;
-}
-
-.sidebar-badge.pill {
-  background: rgba(13, 148, 136, 0.3);
-  color: #2dd4bf;
-  border: 1px solid rgba(45, 212, 191, 0.3);
-}
-
-.sidebar-badge.danger {
-  background: #dc2626;
-  color: #ffffff;
-  animation: pulse-badge 2s infinite;
-}
-
-.sidebar-badge.role {
-  font-size: 9px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
-}
-
-/* User Card / Footer */
-.sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
   background: rgba(15, 23, 42, 0.5);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  z-index: 150;
 }
-
-.sidebar-system-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #64748b;
-}
-
-.sidebar-status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sidebar-status-dot {
-  width: 6px;
-  height: 6px;
-  background: #10b981;
-  border-radius: 50%;
-  box-shadow: 0 0 6px #10b981;
-}
+@media (min-width: 1025px) { .sidebar-overlay { display: none; } }
