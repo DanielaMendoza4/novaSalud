@@ -28,7 +28,7 @@
   --bg-muted: #f1f5f9;
 
   /* Textos */
-  --text-main: #10231e;
+  --text-main: #ebf1f0;
   --text-muted: #566a74;
   --text-light: #94a3b8;      /* Slate 400 */
 
@@ -44,6 +44,12 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  /* Colores del banner dashboard - hero gradient */
+  --dashboard-hero-start: #0d9488;
+  --dashboard-hero-middle: #0f766e;
+  --dashboard-hero-end: #115e59;
+  --dashboard-hero-text: #fafafa;
+  --dashboard-hero-subtle: #ccfbf1;
 }
 
 /* Reset y Base */

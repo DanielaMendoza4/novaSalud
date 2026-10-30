@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Card from '../../components/Card/Card'
 import Badge from '../../components/Badge/Badge'
 import Table from '../../components/Table/Table'
-import { avisosService, productosService, resumenService } from '../../services'
+import { productosService, resumenService } from '../../services'
 import { useAuth } from '../../context'
 import { mensajeDeError } from '../../utils/errores'
 
@@ -26,23 +26,22 @@ export default function Dashboard() {
   const config = roleConfig[usuario.rol] || roleConfig.trabajador
   const [summary, setSummary] = useState(null)
   const [products, setProducts] = useState([])
-  const [avisos, setAvisos] = useState([])
   const [state, setState] = useState({ loading: true, error: '' })
 
   useEffect(() => {
     let active = true
     Promise.all([
       resumenService.obtener(usuario.rol),
-      productosService.listar({ page: 1, limit: 20 }),
-      avisosService.listar()
-    ]).then(([summaryResponse, productResponse, avisosResponse]) => {
+      productosService.listar({ page: 1, limit: 20 })
+    ]).then(([summaryResponse, productResponse]) => {
       if (!active) return
       setSummary(summaryResponse)
-      setProducts(productResponse.data)
-      setAvisos(avisosResponse)
+      setProducts(productResponse.data || [])
       setState({ loading: false, error: '' })
     }).catch((error) => {
       if (active) setState({ loading: false, error: mensajeDeError(error) })
+    }).finally(() => {
+      if (active) setState({ loading: false, error: '' })
     })
     return () => { active = false }
   }, [usuario.rol])
@@ -94,15 +93,7 @@ export default function Dashboard() {
             />
           )}
         </div>
-        <div className="panel-card">
-          <h2 className="dashboard-section-title"><span>Avisos de stock</span><Badge variant="danger">{avisos.length}</Badge></h2>
-          {avisos.length === 0 ? <p>No hay avisos pendientes.</p> : avisos.map((aviso) => (
-            <div key={`${aviso.producto_id}-${aviso.tipo}`} style={{ padding: '10px 0', borderBottom: '1px solid #e2e8f0' }}>
-              <strong>{aviso.nombre}</strong>
-              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '13px' }}>{aviso.detalle}</p>
-            </div>
-          ))}
-        </div>
+        
       </div>
     </div>
   )
