@@ -15,80 +15,14 @@ const CheckIcon = () => (
        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <circle cx="10" cy="10" r="8" /><path d="M6.5 10.2l2.4 2.4 4.6-5" />
   </svg>
-);
+)
 
 const LockIcon = () => (
   <svg className="login__icon login__icon--sm" viewBox="0 0 16 16" fill="none" stroke="currentColor"
        strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <rect x="3" y="7" width="10" height="7" rx="2" /><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
   </svg>
-);
-
-const LoginTitle = () => (
-  <h1 className="login__title">Bienvenido de vuelta</h1>
-);
-
-const LoginSubtitle = () => (
-  <p className="login__subtitle">Ingresa tus credenciales para continuar.</p>
-);
-
-const LoginForm = ({
-  email, setEmail, password, setPassword,
-  showPassword, setShowPassword, error, setError,
-  loading, handleSubmit
-}) => {
-  const toggleLabel = showPassword ? 'Ocultar' : 'Mostrar';
-  return (
-    <form className="login__form" onSubmit={handleSubmit} noValidate>
-      <div className="login__field">
-        <label className="login__label" htmlFor="login-email">Correo electrónico</label>
-        <input className="login__input" id="login-email" type="email" autoComplete="username"
-               placeholder="vendedor@novasalud.pe" value={email} onChange={(e) => setEmail(e.target.value)} />
-      </div>
-
-      <div className="login__field">
-        <label className="login__label" htmlFor="login-password">Contraseña</label>
-        <div className="login__pass">
-          <input className="login__input login__input--pass" id="login-password"
-                 type={showPassword ? 'text' : 'password'} autoComplete="current-password"
-               placeholder="Ingresa tu contraseña" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <button type="button" className="login__toggle"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={toggleLabel}>
-            {toggleLabel}
-          </button>
-        </div>
-      </div>
-
-      {error && <p className="login__error" role="alert">{error}</p>}
-
-      {/* Button removed from here - kept only in parent component */}
-    </form>
-  );
-};
-
-const handleSubmit = async (event) => {
-  event.preventDefault()
-  setError('')
-
-  if (!email.trim() || !password) {
-    setError('Ingresa tu correo y contraseña para continuar.')
-    return
-  }
-
-  setLoading(true)
-
-  try {
-    await login({ email: email.trim(), password })
-    navigate('/', { replace: true })
-  } catch (loginError) {
-    setError(
-      loginError.message || 'No se pudo iniciar sesión.'
-    )
-  } finally {
-    setLoading(false)
-  }
-};
+)
 
 export default function Login() {
   const { usuario, login } = useAuth()
@@ -103,6 +37,29 @@ export default function Login() {
   if (usuario) {
     return <Navigate to="/" replace />
   }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError('')
+
+    if (!email.trim() || !password) {
+      setError('Ingresa tu correo y contraseña para continuar.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      await login({ email: email.trim(), password })
+      navigate('/', { replace: true })
+    } catch (loginError) {
+      setError(loginError.message || 'No se pudo iniciar sesión.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const toggleLabel = mostrarPassword ? 'Ocultar' : 'Mostrar'
 
   return (
     <main className="login">
@@ -136,25 +93,53 @@ export default function Login() {
       <section className="login__panel">
         <div className="login__form-card">
           <p className="login__eyebrow">ACCESO AL SISTEMA</p>
-          <LoginTitle />
-          <LoginSubtitle />
+          <h1 className="login__title">Bienvenido de vuelta</h1>
+          <p className="login__subtitle">Ingresa tus credenciales para continuar.</p>
 
-          <LoginForm
-            email={email}
-            setEmail={setEmail}
-            password={password}
-            setPassword={setPassword}
-            showPassword={mostrarPassword}
-            setShowPassword={setMostrarPassword}
-            error={error}
-            setError={setError}
-            loading={loading}
-            handleSubmit={handleSubmit}
-          />
+          <form className="login__form" onSubmit={handleSubmit} noValidate>
+            <div className="login__field">
+              <label className="login__label" htmlFor="login-email">Correo electrónico</label>
+              <input
+                className="login__input"
+                id="login-email"
+                type="email"
+                autoComplete="username"
+                placeholder="vendedor@novasalud.pe"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-          <button type="submit" className="login__submit" disabled={loading}>
-            {loading ? 'Ingresando…' : 'Iniciar sesión'}
-          </button>
+            <div className="login__field">
+              <label className="login__label" htmlFor="login-password">Contraseña</label>
+              <div className="login__pass">
+                <input
+                  className="login__input login__input--pass"
+                  id="login-password"
+                  type={mostrarPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="Ingresa tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="login__toggle"
+                  onClick={() => setMostrarPassword((v) => !v)}
+                  aria-label={`${toggleLabel} contraseña`}
+                >
+                  {toggleLabel}
+                </button>
+              </div>
+            </div>
+
+            {error && <p className="login__error" role="alert">{error}</p>}
+
+            <button type="submit" className="login__submit" disabled={loading}>
+              {loading ? 'Ingresando…' : 'Iniciar sesión'}
+            </button>
+          </form>
+
           <p className="login__secure"><LockIcon /> Acceso seguro para el personal de la botica</p>
         </div>
       </section>
