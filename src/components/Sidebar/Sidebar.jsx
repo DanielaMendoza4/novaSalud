@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../context'
-import logo from '../../assets/logo.jpeg'
+import logo from '../../assets/LOGO.jpeg'
 import './Sidebar.css'
 
 const ICONS = {
