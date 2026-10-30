@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const login = async ({ email, password, rolEsperado }) => {
+  const login = async ({ email, password }) => {
     const response = await authService.login({ email, password })
 
     if (!response?.token || !response?.usuario) {
@@ -89,12 +89,6 @@ export function AuthProvider({ children }) {
 
     if (!['admin', 'trabajador'].includes(usuarioAutenticado.rol)) {
       throw new Error('El usuario no tiene un rol autorizado.')
-    }
-
-    if (rolEsperado && usuarioAutenticado.rol !== rolEsperado) {
-      throw new Error(
-        'El usuario no corresponde al tipo de acceso seleccionado.'
-      )
     }
 
     localStorage.setItem(CLAVE_TOKEN, response.token)
