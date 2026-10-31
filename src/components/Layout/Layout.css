@@ -19,6 +19,22 @@
   margin-left: 80px;
 }
 
+@media (min-width: 1001px) {
+  .layout-main-wrapper:has(.ventas-page.split-scroll) {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .layout-main-wrapper:has(.ventas-page.split-scroll) .layout-content-area {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
 @media (max-width: 1024px) {
   .layout-main-wrapper,
   .layout-main-wrapper.sidebar-collapsed {

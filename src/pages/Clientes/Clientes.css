@@ -1,16 +1,12 @@
 .clientes-page { color: #10231e; }
-.clientes-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
-.clientes-list-header, .clientes-form-heading { display: flex; align-items: center; gap: 12px; }
+.clientes-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.clientes-list-header { display: flex; align-items: center; }
 .clientes-list-header { justify-content: space-between; margin-bottom: 16px; }
-.clientes-list-header h2, .clientes-form-heading h2 { margin: 0; color: #10231e; font-size: 17px; }
-.clientes-list-header p, .clientes-form-heading p { margin: 5px 0 0; color: #566a74; font-size: 12px; }
-.clientes-form-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: #e3f5ef; color: #0d7f6f; font-size: 22px; font-weight: 500; }
-.clientes-form { display: grid; gap: 16px; margin-top: 24px; }
+.clientes-list-header h2 { margin: 0; color: #10231e; font-size: 17px; }
+.clientes-list-header p { margin: 5px 0 0; color: #566a74; font-size: 12px; }
 .clientes-table { margin-top: 18px; border: 0; box-shadow: none; }
 .clientes-table .novasalud-table th { padding: 11px 14px; background: #f4f7f8; color: #566a74; font-size: 10px; }
 .clientes-table .novasalud-table td { height: 52px; padding: 10px 14px; }
 .clientes-loading { padding: 48px 0; color: #566a74; text-align: center; font-size: 13px; }
 .clientes-feedback { margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; font-size: 13px; }
 .clientes-feedback.error { background: #fff1f0; border: 1px solid #f5c2c0; color: #b42318; }
-.clientes-feedback.success { background: #e3f5ef; border: 1px solid #b9e5d7; color: #096b5e; }
-@media (max-width: 900px) { .clientes-layout { grid-template-columns: 1fr; } .clientes-form-card { order: 2; } }

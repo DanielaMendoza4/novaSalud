@@ -5,6 +5,7 @@ import EmptyState from '../../components/EmptyState/EmptyState'
 import Field from '../../components/Field/Field'
 import PageHeader from '../../components/PageHeader/PageHeader'
 import SearchBar from '../../components/SearchBar/SearchBar'
+import { useAuth } from '../../context'
 import { clientesService, productosService, turnosService, ventasService } from '../../services'
 import { ahoraEnLima, formatFecha, formatHora } from '../../utils/fechas'
 import { mensajeDeError } from '../../utils/errores'
@@ -12,8 +13,11 @@ import './Ventas.css'
 
 const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
 const paymentMethods = ['efectivo', 'yape', 'plin', 'tarjeta']
+const initialClientForm = { tipo_doc: 'DNI', numero_doc: '', nombre: '' }
 
 export default function Ventas() {
+  const { usuario } = useAuth()
+  const esAdministrador = usuario?.rol === 'admin'
   const [products, setProducts] = useState([])
   const [clients, setClients] = useState([])
   const [turno, setTurno] = useState(null)
@@ -21,6 +25,8 @@ export default function Ventas() {
   const [query, setQuery] = useState('')
   const [cart, setCart] = useState([])
   const [clientId, setClientId] = useState('')
+  const [clientForm, setClientForm] = useState(initialClientForm)
+  const [clientFormState, setClientFormState] = useState({ saving: false, error: '', success: '' })
   const [comprobante, setComprobante] = useState('boleta')
   const [method, setMethod] = useState('efectivo')
   const [paid, setPaid] = useState('')
@@ -46,6 +52,30 @@ export default function Ventas() {
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0), [cart])
   const cash = method === 'efectivo' ? Number(paid || 0) : 0
   const change = Math.max(0, cash - total)
+  const clientDocumentLength = clientForm.tipo_doc === 'DNI' ? 8 : 11
+  const clientDocumentError = clientForm.numero_doc && clientForm.numero_doc.length !== clientDocumentLength
+    ? `${clientForm.tipo_doc} debe tener ${clientDocumentLength} dígitos.`
+    : ''
+  const clientFormValid = clientForm.numero_doc.length === clientDocumentLength && clientForm.nombre.trim().length > 0
+
+  const createClient = async (event) => {
+    event.preventDefault()
+    if (!clientFormValid) return
+
+    setClientFormState({ saving: true, error: '', success: '' })
+    try {
+      const client = await clientesService.crear(clientForm)
+      setClients((current) => [...current, client])
+      setClientForm(initialClientForm)
+      setClientFormState({ saving: false, error: '', success: 'Cliente creado correctamente.' })
+    } catch (error) {
+      setClientFormState({
+        saving: false,
+        error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error),
+        success: ''
+      })
+    }
+  }
 
   const addProduct = (product) => {
     if (['agotado', 'vencido'].includes(product.estado) || product.stock_total <= 0) {
@@ -115,11 +145,11 @@ export default function Ventas() {
 
   if (state.loading) return <div className="shared-card ventas-loading">Cargando punto de venta...</div>
   return (
-    <div className="ventas-page">
+    <div className="ventas-page split-scroll">
       <PageHeader title="Punto de Venta" subtitle="Busca productos y agrégalos al carrito." />
       {state.error && <div className="ventas-feedback error" role="alert">{state.error}</div>}
       {state.success && <div className="ventas-feedback success" role="status">{state.success}</div>}
-      <div className="ventas-layout">
+      <div className={`ventas-layout split-scroll ${esAdministrador ? 'admin' : ''}`}>
         <div className="ventas-main-column">
           <section className="shared-card ventas-products-card">
             <div className="ventas-section-heading">
@@ -200,7 +230,53 @@ export default function Ventas() {
           </section>
         </div>
 
-        <aside className="shared-card ventas-checkout-card">
+        {esAdministrador ? (
+          <aside className="shared-card ventas-new-client-card">
+            <div className="ventas-new-client-heading">
+              <span className="ventas-new-client-icon">+</span>
+              <div><h2>Nuevo cliente</h2><p>Completa los datos del cliente.</p></div>
+            </div>
+            {clientFormState.error && <div className="ventas-feedback error" role="alert">{clientFormState.error}</div>}
+            {clientFormState.success && <div className="ventas-feedback success" role="status">{clientFormState.success}</div>}
+            <form onSubmit={createClient} className="ventas-new-client-form">
+              <Field id="venta-cliente-tipo" label="Tipo de documento">
+                <select
+                  id="venta-cliente-tipo"
+                  value={clientForm.tipo_doc}
+                  onChange={(event) => setClientForm({ ...clientForm, tipo_doc: event.target.value, numero_doc: '' })}
+                >
+                  <option value="DNI">DNI</option>
+                  <option value="RUC">RUC</option>
+                </select>
+              </Field>
+              <Field
+                id="venta-cliente-numero"
+                label="Número de documento"
+                error={clientDocumentError}
+                hint={`Ingresa ${clientDocumentLength} dígitos.`}
+              >
+                <input
+                  id="venta-cliente-numero"
+                  inputMode="numeric"
+                  maxLength={clientDocumentLength}
+                  value={clientForm.numero_doc}
+                  aria-invalid={Boolean(clientDocumentError)}
+                  onChange={(event) => setClientForm({ ...clientForm, numero_doc: event.target.value.replace(/\D/g, '') })}
+                />
+              </Field>
+              <Field id="venta-cliente-nombre" label="Nombre completo">
+                <input
+                  id="venta-cliente-nombre"
+                  value={clientForm.nombre}
+                  onChange={(event) => setClientForm({ ...clientForm, nombre: event.target.value })}
+                />
+              </Field>
+              <Button type="submit" fullWidth disabled={clientFormState.saving || !clientFormValid} loading={clientFormState.saving}>
+                Crear cliente
+              </Button>
+            </form>
+          </aside>
+        ) : <aside className="shared-card ventas-checkout-card">
           <div className="ventas-section-heading"><div><h2>Cobro</h2><p>Completa los datos de la venta.</p></div></div>
           <div className="ventas-checkout-form">
             <Field id="venta-cliente" label="Cliente (opcional)">
@@ -215,7 +291,7 @@ export default function Ventas() {
           </div>
           <div className="ventas-summary"><div><span>Subtotal</span><strong>{money(total / 1.18)}</strong></div><div><span>IGV 18%</span><strong>{money(total - total / 1.18)}</strong></div>{method === 'efectivo' && <div><span>Vuelto</span><strong>{money(change)}</strong></div>}<div className="ventas-total"><span>TOTAL</span><strong>{money(total)}</strong></div></div>
           <div className="ventas-checkout-actions"><Button fullWidth size="lg" disabled={state.saving || !cart.length || (method === 'efectivo' && cash < total)} loading={state.saving} onClick={() => submit('pagada')}>Cobrar</Button><Button fullWidth variant="outline" disabled={state.saving || !cart.length} onClick={() => submit('espera')}>Guardar en espera</Button></div>
-        </aside>
+        </aside>}
       </div>
     </div>
   )
