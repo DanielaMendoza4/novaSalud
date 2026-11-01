@@ -30,6 +30,12 @@
 .reportes-legend > div { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: 8px; color: #566a74; font-size: 12px; }
 .reportes-legend strong { color: #10231e; }
 .reportes-dot { width: 9px; height: 9px; border-radius: 50%; }
+.reportes-sales-panel { overflow: hidden; }
+.reportes-sales-table { margin: 0 -20px -20px; }
+.reportes-sales-table .novasalud-table-container { border: 0; border-radius: 0; box-shadow: none; }
+.reportes-sales-table .novasalud-table th, .reportes-sales-table .novasalud-table td { white-space: nowrap; }
+.reportes-sales-table .novasalud-table th { background: #f7f9fa; }
+.reportes-sales-table .novasalud-table td { color: #10231e; }
 .reportes-alerts { display: grid; }
 .reportes-alert-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; min-height: 64px; border-top: 1px solid #edf2f0; }
 .reportes-alert-row > div { display: grid; gap: 4px; min-width: 0; }

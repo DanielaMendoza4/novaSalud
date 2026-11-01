@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import Badge from '../../components/Badge/Badge'
 import Button from '../../components/Button/Button'
 import Card from '../../components/Card/Card'
 import EmptyState from '../../components/EmptyState/EmptyState'
 import PageHeader from '../../components/PageHeader/PageHeader'
+import Table from '../../components/Table/Table'
 import { reportesService } from '../../services'
 import { mensajeDeError } from '../../utils/errores'
 import './Reportes.css'
@@ -17,12 +17,10 @@ const subtractDays = (days) => { const date = new Date(); date.setDate(date.getD
 const initialRange = { desde: subtractDays(29), hasta: today }
 const methodLabels = { efectivo: 'Efectivo', yape: 'Yape', plin: 'Plin', tarjeta: 'Tarjeta' }
 const methodColors = ['#0d9488', '#3b82f6', '#f59e0b', '#8b5cf6']
-const statusVariants = { agotado: 'danger', vencido: 'danger', stock_bajo: 'warning', por_vencer: 'warning' }
 
 const formatDay = (value) => new Date(`${value}T12:00:00`).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })
 
 export default function Reportes() {
-  const navigate = useNavigate()
   const [range, setRange] = useState(initialRange)
   const [preset, setPreset] = useState('30')
   const [report, setReport] = useState(null)
@@ -52,6 +50,8 @@ export default function Reportes() {
   const hasSales = Boolean(report?.ventasPorDia?.some((day) => Number(day.total) > 0))
   const paymentTotal = useMemo(() => (report?.metodosPago || []).reduce((sum, item) => sum + Number(item.total || 0), 0), [report])
   const maxTopUnits = Math.max(...(report?.topProductos || []).map((item) => Number(item.unidades || 0)), 1)
+  const paymentLabel = (method) => methodLabels[method] || method || 'Sin pago'
+  const formatSaleDate = (value) => new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Lima' }).format(new Date(value))
 
   return (
     <div className="reportes-page">
@@ -80,7 +80,7 @@ export default function Reportes() {
         </div>
         <div className="reportes-grid">
           <section className="reportes-panel"><div className="reportes-panel-heading"><div><h2>Productos más vendidos</h2><p>Top 10 por unidades.</p></div></div>{report.topProductos?.length ? <div className="reportes-top-products" role="img" aria-label="Barras horizontales de productos más vendidos">{report.topProductos.map((item) => <div className="reportes-top-product" key={item.id}><div className="reportes-top-product-label"><strong>{item.nombre}</strong><span>{item.unidades} unidades</span></div><div className="reportes-top-product-track"><span style={{ width: `${Math.max(Number(item.unidades || 0) / maxTopUnits * 100, 4)}%` }} /></div></div>)}</div> : <EmptyState icon="▤" title="No hay productos vendidos" />}</section>
-          <section className="reportes-panel"><div className="reportes-panel-heading"><div><h2>Alertas de inventario</h2><p>Productos que requieren atención.</p></div><Badge variant="warning">{report.alertasInventario?.length || 0}</Badge></div>{report.alertasInventario?.length ? <div className="reportes-alerts">{report.alertasInventario.map((item) => <div className="reportes-alert-row" key={item.id}><div><strong>{item.nombre}</strong><span>{item.presentacion} · Stock {item.stock_total}</span></div><Badge variant={statusVariants[item.estado] || 'neutral'}>{item.estado.replace('_', ' ')}</Badge><Button size="sm" variant="outline" onClick={() => navigate(`/inventario?producto=${item.id}`)}>Reponer</Button></div>)}</div> : <EmptyState icon="✓" title="Sin alertas de inventario" />}</section>
+          <section className="reportes-panel reportes-sales-panel"><div className="reportes-panel-heading"><div><h2>Detalle de ventas</h2><p>{report.detalleVentas?.length || 0} operaciones completadas.</p></div><Badge variant="success">Completadas</Badge></div><Table className="reportes-sales-table" columns={[{ header: 'Fecha', key: 'fecha', render: (value) => formatSaleDate(value) }, { header: 'Venta', key: 'serie_numero' }, { header: 'Cliente', key: 'cliente' }, { header: 'Pago', key: 'metodo_pago', render: (value) => paymentLabel(value) }, { header: 'Unidades', key: 'unidades' }, { header: 'Total', key: 'total', align: 'right', render: (value) => <strong>{money(value)}</strong> }]} data={report.detalleVentas || []} emptyMessage="No hay ventas completadas en este periodo." emptyIcon="◷" /></section>
         </div>
       </>}
     </div>

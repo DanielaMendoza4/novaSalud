@@ -7,7 +7,7 @@ import PageHeader from '../../components/PageHeader/PageHeader'
 import SearchBar from '../../components/SearchBar/SearchBar'
 import { useAuth } from '../../context'
 import { clientesService, productosService, turnosService, ventasService } from '../../services'
-import { ahoraEnLima, formatFecha, formatHora } from '../../utils/fechas'
+import { formatFecha, formatHora } from '../../utils/fechas'
 import { mensajeDeError } from '../../utils/errores'
 import './Ventas.css'
 
@@ -111,22 +111,16 @@ export default function Ventas() {
         setClientId(saleClientId)
         setClientForm(initialClientForm)
       }
-      await ventasService.crear({
+      const createdSale = await ventasService.crear({
         cliente_id: saleClientId ? Number(saleClientId) : null,
         comprobante,
         estado,
+        total,
         items: cart.map(({ producto_id, cantidad }) => ({ producto_id, cantidad })),
         ...(estado === 'pagada' ? { pagos: [{ metodo: method, monto: Number(paid || total) }] } : {})
       })
       if (estado === 'espera') {
-        setWaitingSales((current) => [...current, {
-          id: Date.now(),
-          serie_numero: 'B001-DEMO',
-          fecha: ahoraEnLima(),
-          metodo_pago: null,
-          total,
-          estado
-        }])
+        setWaitingSales((current) => [...current, createdSale])
       }
       setCart([])
       setPaid('')
