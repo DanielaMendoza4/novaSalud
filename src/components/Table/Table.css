@@ -1,3 +1,10 @@
+/* ==========================================================================
+   Componente Table
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Tabla
+   -------------------------------------------------------------------------- */
 .novasalud-table-container {
   width: 100%;
   background: var(--bg-surface, #ffffff);
@@ -49,7 +56,9 @@
   background: #f8fafc;
 }
 
-/* Estado de Carga (Loading) */
+/* --------------------------------------------------------------------------
+   Estado de Carga (Loading)
+   -------------------------------------------------------------------------- */
 .table-loading-container {
   padding: 48px 24px;
   text-align: center;
@@ -71,10 +80,14 @@
 }
 
 @keyframes table-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Estado Vacío (Empty State) */
+/* --------------------------------------------------------------------------
+   Estado Vacío (Empty State)
+   -------------------------------------------------------------------------- */
 .table-empty-container {
   padding: 48px 24px;
   text-align: center;
@@ -100,7 +113,9 @@
   margin: 0;
 }
 
-/* Pie de Tabla con paginación */
+/* --------------------------------------------------------------------------
+   Pie de Tabla con paginación
+   -------------------------------------------------------------------------- */
 .table-footer-bar {
   padding: 12px 18px;
   background: #f8fafc;
