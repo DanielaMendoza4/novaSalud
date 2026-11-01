@@ -1,7 +1,16 @@
 import { ApiError, request, mockDelay, useMocks } from './http'
 import { ventasDetalleMock, ventasMock } from './mocks/ventasMocks'
 import { productosMock } from './mocks/productosMocks'
+import { turnoMock } from './mocks/turnosMocks'
 import { ahoraEnLima } from '../utils/fechas'
+
+const usuarioActual = () => {
+  try {
+    return JSON.parse(localStorage.getItem('novasalud_usuario') || 'null')
+  } catch {
+    return null
+  }
+}
 
 const consumirStock = (items) => {
   const cantidades = new Map()
@@ -56,6 +65,7 @@ export const ventasService = {
     if (useMocks) {
       const id = Date.now()
       if (venta.estado === 'pagada') consumirStock(venta.items)
+      const metodos = [...new Set((venta.pagos || []).map((pago) => pago.metodo))]
       const nuevaVenta = {
         id,
         serie_numero: 'B001-DEMO',
@@ -67,7 +77,10 @@ export const ventasService = {
         igv: 0,
         total: venta.total || 0,
         pagos: venta.pagos || [],
-        vuelto: 0
+        vuelto: 0,
+        turno_id: turnoMock?.id ?? null,
+        metodo_pago: metodos.length > 1 ? 'mixto' : metodos[0] || null,
+        usuario_nombre: usuarioActual()?.nombre || null
       }
       ventasMock.unshift(nuevaVenta)
       return mockDelay(nuevaVenta)

@@ -1,6 +1,6 @@
 export const ventasMock = [
-  { id: 142, serie_numero: 'B001-0142', fecha: '2026-10-28T10:42:00-05:00', metodo_pago: 'efectivo', total: 13.80, estado: 'pagada', usuario_nombre: 'Lucía Torres' },
-  { id: 141, serie_numero: 'B001-0141', fecha: '2026-10-28T09:10:00-05:00', metodo_pago: 'yape', total: 24.50, estado: 'espera', usuario_nombre: 'Lucía Torres' }
+  { id: 142, serie_numero: 'B001-0142', fecha: '2026-10-28T10:42:00-05:00', metodo_pago: 'efectivo', total: 13.80, estado: 'pagada', usuario_nombre: 'Lucía Torres', turno_id: null },
+  { id: 141, serie_numero: 'B001-0141', fecha: '2026-10-28T09:10:00-05:00', metodo_pago: 'yape', total: 24.50, estado: 'espera', usuario_nombre: 'Lucía Torres', turno_id: null }
 ]
 
 export const ventasDetalleMock = {

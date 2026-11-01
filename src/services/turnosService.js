@@ -1,8 +1,9 @@
 import { request, mockDelay, useMocks } from './http'
-import { turnoMock, abrirTurnoMock, cerrarTurnoMock } from './mocks/turnosMocks'
+import { turnoMock, abrirTurnoMock, cerrarTurnoMock, listarTurnosMock } from './mocks/turnosMocks'
 
 export const turnosService = {
   actual: () => (useMocks ? mockDelay(turnoMock) : request('/turnos/actual')),
+  listar: () => (useMocks ? mockDelay(listarTurnosMock()) : Promise.resolve([])),
   abrir: async (fondo_inicial, datos = {}) => {
     const response = useMocks
       ? await mockDelay(abrirTurnoMock(fondo_inicial, datos))
