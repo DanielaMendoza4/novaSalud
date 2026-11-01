@@ -14,6 +14,8 @@ const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
 const texto = (value) => (value ? value : '—')
 const turnosDisponibles = ['mañana', 'tarde', 'noche']
 const LONGITUD_DNI = 8
+// Un turno abierto también trae "diferencia", pero en null: solo el cierre le da un valor.
+const esCierre = (data) => typeof data?.diferencia === 'number'
 
 export default function Turnos() {
   const [turno, setTurno] = useState(null)
@@ -60,9 +62,9 @@ export default function Turnos() {
     try {
       const data = await action()
       setResultado(data)
-      setTurno('diferencia' in data ? null : data)
+      setTurno(esCierre(data) ? null : data)
       setContado('')
-      if ('diferencia' in data) {
+      if (esCierre(data)) {
         setDni('')
         setFranja('')
         setFondo('')
@@ -129,7 +131,7 @@ export default function Turnos() {
             </div>
           </EmptyState>
         )}
-        {resultado?.diferencia !== undefined && (
+        {esCierre(resultado) && (
           <div className={`turnos-result ${resultado.diferencia === 0 ? 'balanced' : 'unbalanced'}`}>
             <h3>Turno cerrado</h3>
             <div><span>Efectivo esperado</span><strong>{money(resultado.efectivo_esperado)}</strong></div>
@@ -143,4 +145,4 @@ export default function Turnos() {
       </Modal>
     </div>
   )
-}
+}

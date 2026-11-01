@@ -1,7 +1,6 @@
 import { ApiError } from '../http'
 import { usuariosDemo } from '../../data/usuarios'
 import { ahoraEnLima } from '../../utils/fechas'
-import { usuariosDemo } from '../../data/usuarios'
 import { resumenMock } from './resumenMocks'
 import { ventasMock } from './ventasMocks'
 
@@ -184,12 +183,8 @@ export const abrirTurnoMock = (fondo_inicial, datos = {}) => {
     efectivo_contado: null,
     diferencia: null,
     estado: 'abierta',
-
-    usuario_dni: datos.dni,
-    usuario_nombre: datos.nombre,
-    franja: datos.franja
     usuario_id: cajero.usuario_id,
-    usuario_nombre: cajero.usuario_nombre,
+    usuario_nombre: datos.nombre || cajero.usuario_nombre,
     usuario_dni: datos.dni || cajero.usuario_dni,
     observaciones: '',
     demo: false

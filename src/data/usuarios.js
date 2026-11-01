@@ -4,7 +4,6 @@ export const usuariosDemo = [
   {
     id: 1,
     nombre: 'Daniel Mendoza',
-    dni: '40123456',
     email: 'admin@novasalud.pe',
     password: 'admin123',
     dni: '12345678',
@@ -15,7 +14,6 @@ export const usuariosDemo = [
   {
     id: 2,
     nombre: 'Lucía Torres',
-    dni: '70123456',
     email: 'trabajador@novasalud.pe',
     password: 'trabajador123',
     dni: '45678912',
