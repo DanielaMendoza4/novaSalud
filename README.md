@@ -61,14 +61,16 @@ Nova Salud es el frontend de un sistema integral de gestión farmacéutica. La a
 - Protección de rutas por sesión y por rol, además del filtrado del menú lateral.
 - POS de ventas con carrito, control de stock, comprobantes, medios de pago e historial por trabajador.
 - Directorio de clientes con búsqueda, filtros, paginación, ficha de compras y administración restringida al rol admin.
+- Gestión de inventario para administradores: alta, edición, reposición, eliminación, búsqueda y filtros de estado.
+- Reportes de ventas por periodo con indicadores, productos más vendidos, detalle de operaciones y descarga CSV.
 - Estado en memoria compartido para productos, clientes, ventas y alertas.
 - Búsqueda en tiempo real de medicamentos por nombre o código.
 - Modal reutilizable para:
   - Simulación de venta rápida (subtotal, IGV, total y método de pago).
-  - Registro de nuevo producto (formulario de demostración).
+  - Alta, edición y reposición de productos desde Inventario.
 - Notificaciones *toast* con autocierre (4 segundos por defecto).
 - Barra lateral colapsable en escritorio y deslizable en móvil.
-- Menú filtrado según el rol del usuario (`admin`, `vendedor`, `almacen`).
+- Menú filtrado según el rol del usuario (`admin`, `trabajador`).
 - Campana de alertas con contador, lista desplegable y cierre al hacer clic fuera.
 - Autenticación simulada con persistencia en `localStorage` y logout funcional.
 - Diseño responsive con paleta médica y tipografía Plus Jakarta Sans.
@@ -76,7 +78,8 @@ Nova Salud es el frontend de un sistema integral de gestión farmacéutica. La a
 
 ### En desarrollo / solo demostración
 
-- Inventario, Alertas y Reportes todavía muestran páginas de marcador de posición.
+- Inventario y Reportes funcionan con datos de demostración compartidos en memoria; los cambios se pierden al recargar.
+- Alertas todavía usa una lista simulada y no dispone de una pantalla para administrar productos desde el aviso.
 - No hay backend, API, base de datos ni pruebas automatizadas.
 - La autenticación es simulada en el cliente; las cuentas demo viven en `src/data/usuarios.js`.
 - La búsqueda de la barra superior solo imprime en consola.
@@ -158,7 +161,7 @@ Al abrir la aplicación sin sesión, se redirige automáticamente a `/login`. Us
 
 | Tipo de acceso | Correo | Contraseña | Rol |
 | --- | --- | --- | --- |
-| Usuario | `vendedor@novasalud.pe` | `usuario123` | `vendedor` |
+| Trabajador | `trabajador@novasalud.pe` | `trabajador123` | `trabajador` |
 | Administrador | `admin@novasalud.pe` | `admin123` | `admin` |
 
 - La pestaña seleccionada debe coincidir con el tipo de cuenta.
@@ -258,6 +261,16 @@ app-novasalud/
 │   │   ├── useDatos.js          # Hooks de lectura del estado compartido
 │   │   └── index.js             # Barrel file del contexto
 │   ├── pages/
+│   │   ├── Dashboard/
+│   │   │   └── Dashboard.jsx
+│   │   ├── Inventario/
+│   │   │   ├── Inventario.jsx  # Administración local de productos y existencias
+│   │   │   └── Inventario.css
+│   │   ├── Reportes/
+│   │   │   ├── Reportes.jsx    # Indicadores y exportación de ventas a CSV
+│   │   │   └── Reportes.css
+│   │   ├── Avisos/
+│   │   ├── Turnos/
 │   │   ├── Ventas/
 │   │   │   ├── Ventas.jsx
 │   │   │   └── Ventas.css
@@ -291,7 +304,7 @@ app-novasalud/
 | Ruta | Responsabilidad |
 | --- | --- |
 | `src/main.jsx` | Punto de entrada: monta React, carga Bootstrap y los estilos globales. |
-| `src/App.jsx` | Dashboard demo, definición de rutas, guards y composición general. |
+| `src/App.jsx` | Rutas, guards y composición general de la aplicación. |
 | `src/App.css` | Estilos del dashboard (banner, KPIs y grilla de dos columnas). |
 | `src/index.css` | Tokens de diseño, reset, tipografía y estilos globales. |
 | `src/components/<Nombre>/` | Componentes de interfaz; cada uno con su `.jsx` y `.css`. |
@@ -300,6 +313,8 @@ app-novasalud/
 | `src/context/` | `AuthContext`, `AuthProvider`, `useAuth` y su barrel. |
 | `src/context/DatosContext.jsx` | Estado compartido en memoria para productos, clientes, ventas y alertas. |
 | `src/pages/Ventas/` | POS, historial, comprobantes y operaciones del módulo de ventas. |
+| `src/pages/Inventario/` | Gestión local del catálogo, reposición y filtros de stock. |
+| `src/pages/Reportes/` | Resumen por periodo, productos más vendidos y exportación CSV. |
 | `src/pages/Clientes/` | Directorio, formulario de administración e historial por cliente. |
 | `src/data/usuarios.js` | Cuentas demo y tipos de acceso. |
 | `src/data/productos.js` | Catálogo de productos y atributos de venta. |
@@ -354,16 +369,17 @@ main.jsx
     └── <AuthProvider>              # Sesión simulada (localStorage)
         └── <DatosProvider>          # Productos, clientes, ventas y alertas
             └── <BrowserRouter>      # Enrutamiento SPA
-                └── <AppContent />
+                └── <AppRoutes />
                     └── <Routes>
                         ├── /login       → Login (público)
                         └── <Route element={<ProtectedRoute><Layout ... /></ProtectedRoute>}>
-                            ├── /             → DashboardDemo
-                            ├── /ventas       → Ventas (admin, vendedor)
-                            ├── /inventario   → PlaceholderPage (admin, almacen)
-                            ├── /clientes     → Clientes (admin, vendedor)
-                            ├── /alertas      → PlaceholderPage (todos)
-                            └── /reportes     → PlaceholderPage (admin)
+                            ├── /             → Dashboard
+                            ├── /ventas       → Ventas (admin, trabajador)
+                            ├── /inventario   → Inventario (admin)
+                            ├── /clientes     → Clientes (admin, trabajador)
+                            ├── /avisos       → Avisos (admin, trabajador)
+                            ├── /turnos       → Turnos (admin, trabajador)
+                            └── /reportes     → Reportes (admin)
 ```
 
 `ProtectedRoute` envuelve el layout completo: sin sesión, cualquier ruta redirige a `/login`. Dentro del layout, cada ruta vuelve a usar `ProtectedRoute` con la lista de roles permitidos. `Layout` actúa como *layout route* y renderiza el contenido mediante `<Outlet />`.
@@ -380,13 +396,16 @@ App
         │   └── AlertBell
         │       └── useAlertas
         └── Outlet
-            ├── DashboardDemo
+            ├── Dashboard
             │   ├── Card, Badge, Button
             │   ├── Table y SearchBar
-            │   └── Modal y Toast
             ├── Ventas
             │   ├── POS e historial
             │   └── Modal y Toast
+            ├── Inventario
+            │   └── Gestión de productos y reposición
+            ├── Reportes
+            │   └── Resumen y detalle exportable de ventas
             └── Clientes
                 ├── Directorio y formulario admin
                 └── Modal y Toast
@@ -397,9 +416,8 @@ App
 | Estado | Ubicación | Alcance |
 | --- | --- | --- |
 | Productos, clientes, ventas y alertas | `DatosProvider` | Compartido en memoria |
-| Filtro de búsqueda del inventario demo | `DashboardDemo` en `App.jsx` | Local al dashboard |
-| Modales POS / producto | `DashboardDemo` en `App.jsx` | Local al dashboard |
-| Notificaciones toast | `DashboardDemo` en `App.jsx` | Local al dashboard |
+| Catálogo y filtros de inventario | `Inventario` | Local a la vista; los cambios se guardan en `DatosProvider` |
+| Filtros y rango del reporte | `Reportes` | Local a la vista; resume ventas de `DatosProvider` |
 | Formulario de login | `Login` | Local a la vista |
 | Alertas | `DatosProvider` mediante `useAlertas` | Compartido durante la sesión |
 | Sesión de usuario | `AuthProvider` | Global (contexto + `localStorage`) |
@@ -414,12 +432,13 @@ App
 | Ruta | Componente | Roles permitidos | Descripción |
 | --- | --- | --- | --- |
 | `/login` | `Login` | Público | Acceso de usuario y administrador. |
-| `/` | `DashboardDemo` | Todos | Panel principal con KPIs, inventario y modales. |
-| `/ventas` | `Ventas` | `admin`, `vendedor` | POS e historial; el vendedor consulta únicamente sus ventas. |
-| `/inventario` | `PlaceholderPage` | `admin`, `almacen` | Gestión de inventario y lotes. |
-| `/clientes` | `Clientes` | `admin`, `vendedor` | Consulta para ambos roles; CRUD solo para admin. |
-| `/alertas` | `PlaceholderPage` | Todos | Centro de alertas de farmacia. |
-| `/reportes` | `PlaceholderPage` | `admin` | Reportes y estadísticas. |
+| `/` | `Dashboard` | Todos | Panel principal con indicadores de la botica. |
+| `/ventas` | `Ventas` | `admin`, `trabajador` | POS e historial de ventas. |
+| `/inventario` | `Inventario` | `admin` | Alta, edición, eliminación, reposición y búsqueda de productos. |
+| `/clientes` | `Clientes` | `admin`, `trabajador` | Consulta del directorio de clientes. |
+| `/avisos` | `Avisos` | `admin`, `trabajador` | Avisos simulados de stock bajo, productos agotados y vencimientos. |
+| `/turnos` | `Turnos` | `admin`, `trabajador` | Apertura, cierre y consulta de caja. |
+| `/reportes` | `Reportes` | `admin` | Resumen por fechas, productos más vendidos y descarga CSV. |
 | `*` | — | — | Redirige a `/`; si no hay sesión, termina en `/login`. |
 
 La navegación se realiza con `Link` y `NavLink` de React Router. Los enlaces del menú lateral se marcan como activos con la clase `active`. Si un usuario intenta entrar por URL a una ruta sin permiso, `ProtectedRoute` lo redirige al dashboard.
@@ -468,10 +487,9 @@ function MiComponente() {
 | Rol | Etiqueta en interfaz | Módulos visibles en el sidebar |
 | --- | --- | --- |
 | `admin` | Administrador | Dashboard, Ventas, Inventario, Clientes, Alertas, Reportes |
-| `vendedor` | Vendedor (POS) | Dashboard, Ventas, Clientes, Alertas |
-| `almacen` | Encargado Almacén | Dashboard, Inventario, Alertas |
+| `trabajador` | Trabajador | Dashboard, Ventas, Clientes, Avisos, Turnos |
 
-> **Nota:** además de ocultar enlaces, las rutas están protegidas con `ProtectedRoute`. Un vendedor que intente abrir `/inventario` o `/reportes` por URL es redirigido al dashboard.
+> **Nota:** además de ocultar enlaces, las rutas están protegidas por rol. Un trabajador que intente abrir `/inventario` o `/reportes` por URL es redirigido al dashboard.
 
 ### `ProtectedRoute`
 
@@ -531,7 +549,7 @@ import SearchBar from './components/SearchBar/SearchBar'
 
 Componente de página completa, sin props. Usa `useAuth()` y `useNavigate()`.
 
-- Pestañas **Usuario** (`vendedor`) y **Administrador** (`admin`).
+- Pestañas **Trabajador** (`trabajador`) y **Administrador** (`admin`).
 - Valida correo, contraseña y coincidencia con la pestaña.
 - Muestra/Ocultar contraseña, estado de carga, error y credenciales demo con autocompletado.
 - Si ya existe una sesión, redirige automáticamente a `/`.
@@ -820,7 +838,9 @@ Definido en `src/data/productos.js` y compartido mediante `DatosProvider`:
 
 Productos de demostración: Paracetamol, Amoxicilina, Ibuprofeno, Loratadina, Omeprazol y otros.
 
-Los clientes y las ventas de muestra están definidos en `src/data/clientes.js` y `src/data/ventas.js`. El POS rebaja el stock al completar una venta y lo devuelve al anularla; los niveles iguales o inferiores al mínimo generan una alerta compartida.
+Los clientes y las ventas de muestra están definidos en `src/data/clientes.js` y `src/data/ventas.js`. Los reportes usan las ventas completadas de `DatosProvider`, omiten operaciones anuladas o en espera y permiten exportar el detalle filtrado a CSV. La gestión de inventario modifica los productos de `DatosProvider`; la reposición agrega unidades al stock actual.
+
+> El inventario y los reportes son funcionales sobre los datos locales de demostración. `src/data/usuarios.js` solo contiene las cuentas y roles de acceso; no es la fuente de productos ni ventas. Como aún no hay persistencia, la información modificada se reinicia al recargar la aplicación.
 
 ### Alerta
 
@@ -843,7 +863,7 @@ Las cuentas demo viven en `src/data/usuarios.js`. La sesión persistida excluye 
 | `nombre` | `string` | `Daniel Mendoza` | Nombre mostrado en la navbar. |
 | `email` | `string` | `admin@novasalud.pe` | Correo de acceso. |
 | `password` | `string` | `admin123` | Solo existe en el archivo de datos demo. |
-| `rol` | `string` | `admin` | `admin`, `vendedor`, `almacen`. |
+| `rol` | `string` | `admin` | `admin` o `trabajador`. |
 | `cargo` | `string` | `Administrador` | Etiqueta del cargo. |
 | `sucursal` | `string` | `Botica Central` | Sucursal asignada. |
 
@@ -852,7 +872,7 @@ Las cuentas demo viven en `src/data/usuarios.js`. La sesión persistida excluye 
 ## Estado actual y limitaciones
 
 - **Sin backend:** todos los datos son locales y se pierden al recargar (excepto la sesión en `localStorage`).
-- **Rutas de módulos:** Inventario, Alertas y Reportes continúan como páginas de marcador de posición.
+- **Datos locales:** Inventario y Reportes ya permiten gestionar/consultar los datos simulados durante la sesión; no persisten al recargar ni sustituyen un backend.
 - **Autenticación simulada:** las cuentas viven en `src/data/usuarios.js`; no hay API, JWT real ni validación en servidor.
 - **Credenciales demo visibles:** el login muestra las cuentas de prueba con fines académicos.
 - **Sesión local:** el token es simulado y se guarda en `localStorage`; cualquiera con acceso al navegador puede modificarlo.
@@ -868,14 +888,14 @@ Las cuentas demo viven en `src/data/usuarios.js`. La sesión persistida excluye 
 
 ## Próximos pasos
 
-1. Implementar las páginas reales de Inventario, Alertas y Reportes.
-2. Reemplazar los datos mock y la autenticación simulada por una API/backend con sesiones reales (JWT o cookies).
-3. Añadir “Recordarme”, recuperación de contraseña y cierre de sesión por inactividad.
-4. Persistir el estado de negocio y conectar el centro de alertas con un backend.
-5. Conectar la búsqueda global de la navbar.
-6. Añadir pruebas con Vitest y React Testing Library, incluyendo los flujos de login y roles.
-7. Corregir el favicon y limpiar los recursos no utilizados.
-8. Evaluar migración a TypeScript y división de `App.jsx` en páginas independientes.
+1. Conectar la gestión de inventario y los reportes con endpoints y almacenamiento persistente.
+2. Sincronizar los datos del POS con las vistas de inventario y reportes.
+3. Reemplazar la autenticación simulada por sesiones reales (JWT o cookies).
+4. Añadir “Recordarme”, recuperación de contraseña y cierre de sesión por inactividad.
+5. Conectar el centro de alertas con un backend.
+6. Conectar la búsqueda global de la navbar.
+7. Añadir pruebas con Vitest y React Testing Library, incluyendo los flujos de login y roles.
+8. Corregir el favicon y limpiar los recursos no utilizados.
 9. Configurar despliegue con fallback SPA y variables de entorno.
 
 ---

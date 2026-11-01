@@ -1,0 +1,25 @@
+.reports-page { display: grid; gap: 20px; color: #10231e; }
+.reports-filters { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 20px; }
+.reports-filters h2, .reports-section-heading h2 { margin: 0; color: #10231e; font-size: 16px; }
+.reports-filters p, .reports-section-heading p { margin: 5px 0 0; color: #566a74; font-size: 12px; }
+.reports-date-fields { display: flex; gap: 12px; }
+.reports-date-fields label { display: grid; gap: 5px; color: #566a74; font-size: 11px; font-weight: 700; }
+.reports-date-fields input { min-height: 40px; padding: 0 10px; border: 1px solid #c5d4cf; border-radius: 9px; background: #fff; color: #10231e; font: inherit; }
+.reports-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.reports-summary article { display: grid; gap: 8px; padding: 18px 20px; }
+.reports-summary span { color: #566a74; font-size: 12px; }
+.reports-summary strong { color: #0d7f6f; font-size: 23px; }
+.reports-section { padding: 20px; }
+.reports-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.reports-table { border: 0; box-shadow: none; }
+.reports-table .novasalud-table th { padding: 11px 14px; font-size: 10px; }
+.reports-table .novasalud-table td { padding: 11px 14px; }
+.reports-feedback { padding: 12px 14px; border: 1px solid #f5c2c0; border-radius: 10px; background: #fff1f0; color: #b42318; font-size: 13px; }
+.reports-note { margin: -8px 0 0; color: #64748b; font-size: 11px; }
+@media (max-width: 850px) { .reports-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .reports-filters { align-items: stretch; flex-direction: column; }
+  .reports-date-fields { flex-direction: column; }
+  .reports-date-fields input { width: 100%; }
+  .reports-summary { grid-template-columns: 1fr; }
+}
