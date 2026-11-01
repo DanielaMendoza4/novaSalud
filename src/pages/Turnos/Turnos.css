@@ -144,6 +144,12 @@
   text-align: left;
 }
 
+.turnos-open-form input[readonly] {
+  background: #f4f7f8;
+  color: #10231e;
+  cursor: default;
+}
+
 .turnos-user-found {
   display: grid;
   gap: 3px;

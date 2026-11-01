@@ -151,8 +151,9 @@ Otros endpoints:
 
 ### Turnos (caja)
 
-- `GET /api/turnos/actual` devuelve `{ "id": 7, "apertura": "...", "fondo_inicial": 100.00, "estado": "abierta" }` o `null`.
-- `POST /api/turnos/abrir` con `{ "fondo_inicial": 100.00 }`.
+- `GET /api/trabajadores/:dni` devuelve `{ "dni": "70123456", "nombre": "..." }`, o 404 `TRABAJADOR_NO_ENCONTRADO` con su `mensaje`. Solo debe devolver esos dos campos.
+- `GET /api/turnos/actual` devuelve `{ "id": 7, "apertura": "...", "fondo_inicial": 100.00, "estado": "abierta", "usuario_dni": "70123456", "usuario_nombre": "...", "franja": "mañana" }` o `null`.
+- `POST /api/turnos/abrir` con `{ "fondo_inicial": 100.00, "franja": "mañana", "usuario_dni": "70123456" }`. Responde con el turno abierto, incluido `usuario_nombre`; el backend obtiene el nombre a partir del DNI.
 - `POST /api/turnos/cerrar` con `{ "efectivo_contado": 620.00 }` y responde `{ "efectivo_esperado": 620.00, "efectivo_contado": 620.00, "diferencia": 0.00 }`.
 
 No se puede vender sin un turno abierto (409 `TURNO_CERRADO`).

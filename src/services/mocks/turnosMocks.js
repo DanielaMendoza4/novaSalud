@@ -1,8 +1,22 @@
+import { ApiError } from '../http'
+import { usuariosDemo } from '../../data/usuarios'
 import { ahoraEnLima } from '../../utils/fechas'
 import { resumenMock } from './resumenMocks'
 
 export let turnoMock = null
 export const cierreMock = { efectivo_esperado: 620.00, efectivo_contado: 620.00, diferencia: 0.00 }
+
+export const buscarTrabajadorMock = (dni) => {
+  const trabajador = usuariosDemo.find((usuario) => usuario.dni === dni)
+  if (!trabajador) {
+    throw new ApiError({
+      codigo: 'TRABAJADOR_NO_ENCONTRADO',
+      mensaje: 'No hay ningún trabajador registrado con ese DNI.',
+      status: 404
+    })
+  }
+  return { dni: trabajador.dni, nombre: trabajador.nombre }
+}
 
 export const abrirTurnoMock = (fondo_inicial, datos = {}) => {
   turnoMock = {
@@ -11,6 +25,7 @@ export const abrirTurnoMock = (fondo_inicial, datos = {}) => {
     fondo_inicial,
     estado: 'abierta',
     usuario_dni: datos.dni,
+    usuario_nombre: datos.nombre,
     franja: datos.franja
   }
   resumenMock.trabajador.turno = { id: turnoMock.id, apertura: turnoMock.apertura }
