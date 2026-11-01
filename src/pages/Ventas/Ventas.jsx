@@ -5,6 +5,7 @@ import EmptyState from '../../components/EmptyState/EmptyState'
 import Field from '../../components/Field/Field'
 import PageHeader from '../../components/PageHeader/PageHeader'
 import SearchBar from '../../components/SearchBar/SearchBar'
+import { useAuth } from '../../context'
 import { clientesService, productosService, turnosService, ventasService } from '../../services'
 import { ahoraEnLima, formatFecha, formatHora } from '../../utils/fechas'
 import { mensajeDeError } from '../../utils/errores'
@@ -12,8 +13,11 @@ import './Ventas.css'
 
 const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
 const paymentMethods = ['efectivo', 'yape', 'plin', 'tarjeta']
+const initialClientForm = { tipo_doc: 'DNI', numero_doc: '', nombre: '' }
 
 export default function Ventas() {
+  const { usuario } = useAuth()
+  const esAdministrador = usuario?.rol === 'admin'
   const [products, setProducts] = useState([])
   const [clients, setClients] = useState([])
   const [turno, setTurno] = useState(null)
@@ -21,6 +25,7 @@ export default function Ventas() {
   const [query, setQuery] = useState('')
   const [cart, setCart] = useState([])
   const [clientId, setClientId] = useState('')
+  const [clientForm, setClientForm] = useState(initialClientForm)
   const [comprobante, setComprobante] = useState('boleta')
   const [method, setMethod] = useState('efectivo')
   const [paid, setPaid] = useState('')
@@ -46,6 +51,12 @@ export default function Ventas() {
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0), [cart])
   const cash = method === 'efectivo' ? Number(paid || 0) : 0
   const change = Math.max(0, cash - total)
+  const clientDocumentLength = clientForm.tipo_doc === 'DNI' ? 8 : 11
+  const clientDocumentError = clientForm.numero_doc && clientForm.numero_doc.length !== clientDocumentLength
+    ? `${clientForm.tipo_doc} debe tener ${clientDocumentLength} dígitos.`
+    : ''
+  const clientFormValid = clientForm.numero_doc.length === clientDocumentLength && clientForm.nombre.trim().length > 0
+  const clientFormHasData = Boolean(clientForm.numero_doc || clientForm.nombre.trim())
 
   const addProduct = (product) => {
     if (['agotado', 'vencido'].includes(product.estado) || product.stock_total <= 0) {
@@ -86,10 +97,22 @@ export default function Ventas() {
       setState((current) => ({ ...current, error: 'El efectivo recibido no cubre el total.' }))
       return
     }
+    if (clientFormHasData && !clientFormValid) {
+      setState((current) => ({ ...current, error: 'Completa correctamente los datos del cliente antes de cobrar.' }))
+      return
+    }
     setState((current) => ({ ...current, saving: true, error: '', success: '' }))
     try {
+      let saleClientId = clientId
+      if (clientFormHasData) {
+        const client = await clientesService.crear(clientForm)
+        setClients((current) => [...current, client])
+        saleClientId = String(client.id)
+        setClientId(saleClientId)
+        setClientForm(initialClientForm)
+      }
       await ventasService.crear({
-        cliente_id: clientId ? Number(clientId) : null,
+        cliente_id: saleClientId ? Number(saleClientId) : null,
         comprobante,
         estado,
         items: cart.map(({ producto_id, cantidad }) => ({ producto_id, cantidad })),
@@ -107,7 +130,7 @@ export default function Ventas() {
       }
       setCart([])
       setPaid('')
-      setState({ loading: false, saving: false, error: '', success: estado === 'espera' ? 'Venta guardada en espera.' : `Venta cobrada. Vuelto: ${money(change)}` })
+      setState({ loading: false, saving: false, error: '', success: estado === 'espera' ? 'Venta guardada en espera.' : `Cobro exitoso. Vuelto: ${money(change)}` })
     } catch (error) {
       setState((current) => ({ ...current, saving: false, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) }))
     }
@@ -126,7 +149,7 @@ export default function Ventas() {
               <div><h2>Buscar productos</h2><p>Selecciona un producto para añadirlo al carrito.</p></div>
               <Badge variant="neutral">{products.length} resultados</Badge>
             </div>
-            <SearchBar value={query} onChange={setQuery} placeholder="Buscar por nombre o código..." showScannerBadge={false} autoFocus={false} />
+            <SearchBar className="ventas-searchbar" value={query} onChange={setQuery} placeholder="Buscar por nombre o código..." showScannerBadge={false} autoFocus={false} />
             <div className="ventas-product-grid">
               {products.length === 0 ? <EmptyState icon="⌕" title="No se encontraron productos" /> : products.map((product) => {
                 const disabled = ['agotado', 'vencido'].includes(product.estado)
@@ -200,22 +223,92 @@ export default function Ventas() {
           </section>
         </div>
 
-        <aside className="shared-card ventas-checkout-card">
+        {esAdministrador ? (
+          <aside className="shared-card ventas-new-client-card">
+            <div className="ventas-new-client-heading">
+              <span className="ventas-new-client-icon">+</span>
+              <div><h2>Nuevo cliente</h2><p>Completa los datos del cliente.</p></div>
+            </div>
+            <div className="ventas-new-client-form">
+              <Field id="venta-cliente-tipo" label="Tipo de documento">
+                <select
+                  id="venta-cliente-tipo"
+                  value={clientForm.tipo_doc}
+                  onChange={(event) => setClientForm({ ...clientForm, tipo_doc: event.target.value, numero_doc: '' })}
+                >
+                  <option value="DNI">DNI</option>
+                  <option value="RUC">RUC</option>
+                </select>
+              </Field>
+              <Field
+                id="venta-cliente-numero"
+                label="Número de documento"
+                error={clientDocumentError}
+                hint={`Ingresa ${clientDocumentLength} dígitos.`}
+              >
+                <input
+                  id="venta-cliente-numero"
+                  inputMode="numeric"
+                  maxLength={clientDocumentLength}
+                  value={clientForm.numero_doc}
+                  aria-invalid={Boolean(clientDocumentError)}
+                  onChange={(event) => setClientForm({ ...clientForm, numero_doc: event.target.value.replace(/\D/g, '') })}
+                />
+              </Field>
+              <Field id="venta-cliente-nombre" label="Nombre completo">
+                <input
+                  id="venta-cliente-nombre"
+                  value={clientForm.nombre}
+                  onChange={(event) => setClientForm({ ...clientForm, nombre: event.target.value })}
+                />
+              </Field>
+            </div>
+          </aside>
+        ) : <aside className="shared-card ventas-checkout-card">
           <div className="ventas-section-heading"><div><h2>Cobro</h2><p>Completa los datos de la venta.</p></div></div>
           <div className="ventas-checkout-form">
-            <Field id="venta-cliente" label="Cliente (opcional)">
-              <select id="venta-cliente" value={clientId} onChange={(event) => setClientId(event.target.value)}>
-                <option value="">Sin cliente</option>
-                {clients.map((client) => <option key={client.id} value={client.id}>{client.nombre} - {client.numero_doc}</option>)}
-              </select>
-            </Field>
+            <div className="ventas-client-add">
+              <div className="ventas-new-client-heading">
+                <span className="ventas-new-client-icon">+</span>
+                <div><h2>Añadir cliente</h2><p>Opcional para esta venta.</p></div>
+              </div>
+              <div className="ventas-new-client-form">
+                <Field id="venta-cliente-tipo" label="Tipo de documento">
+                  <select
+                    id="venta-cliente-tipo"
+                    value={clientForm.tipo_doc}
+                    onChange={(event) => setClientForm({ ...clientForm, tipo_doc: event.target.value, numero_doc: '' })}
+                  >
+                    <option value="DNI">DNI</option>
+                    <option value="RUC">RUC</option>
+                  </select>
+                </Field>
+                <Field id="venta-cliente-numero" label="Número de documento" error={clientDocumentError} hint={`Ingresa ${clientDocumentLength} dígitos.`}>
+                  <input
+                    id="venta-cliente-numero"
+                    inputMode="numeric"
+                    maxLength={clientDocumentLength}
+                    value={clientForm.numero_doc}
+                    aria-invalid={Boolean(clientDocumentError)}
+                    onChange={(event) => setClientForm({ ...clientForm, numero_doc: event.target.value.replace(/\D/g, '') })}
+                  />
+                </Field>
+                <Field id="venta-cliente-nombre" label="Nombre completo">
+                  <input
+                    id="venta-cliente-nombre"
+                    value={clientForm.nombre}
+                    onChange={(event) => setClientForm({ ...clientForm, nombre: event.target.value })}
+                  />
+                </Field>
+              </div>
+            </div>
             <div className="ventas-field-group"><span className="ventas-field-label">Comprobante</span><div className="ventas-segmented">{['boleta', 'factura'].map((value) => <button key={value} type="button" className={comprobante === value ? 'active' : ''} onClick={() => setComprobante(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></div>
             <div className="ventas-field-group"><span className="ventas-field-label">Método de pago</span><div className="ventas-segmented payment">{paymentMethods.map((value) => <button key={value} type="button" className={method === value ? 'active' : ''} onClick={() => setMethod(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></div>
             {method === 'efectivo' && <Field id="venta-efectivo" label="Efectivo recibido"><input id="venta-efectivo" type="number" min="0" step="0.01" value={paid} onChange={(event) => setPaid(event.target.value)} /><div className="ventas-quick-amounts">{[total, 10, 20, 50].map((amount, index) => <button type="button" key={`${amount}-${index}`} onClick={() => setPaid(String(amount))}>{index === 0 ? 'Exacto' : money(amount)}</button>)}</div></Field>}
           </div>
           <div className="ventas-summary"><div><span>Subtotal</span><strong>{money(total / 1.18)}</strong></div><div><span>IGV 18%</span><strong>{money(total - total / 1.18)}</strong></div>{method === 'efectivo' && <div><span>Vuelto</span><strong>{money(change)}</strong></div>}<div className="ventas-total"><span>TOTAL</span><strong>{money(total)}</strong></div></div>
           <div className="ventas-checkout-actions"><Button fullWidth size="lg" disabled={state.saving || !cart.length || (method === 'efectivo' && cash < total)} loading={state.saving} onClick={() => submit('pagada')}>Cobrar</Button><Button fullWidth variant="outline" disabled={state.saving || !cart.length} onClick={() => submit('espera')}>Guardar en espera</Button></div>
-        </aside>
+        </aside>}
       </div>
     </div>
   )

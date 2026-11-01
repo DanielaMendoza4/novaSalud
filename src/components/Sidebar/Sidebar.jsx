@@ -39,7 +39,7 @@ const MENU = [
   { to: '/inventario', label: 'Inventario',      icon: 'inventario', roles: ['admin'],               tag: 'Stock' },
   { to: '/clientes',   label: 'Clientes',        icon: 'clientes',   roles: ['admin', 'trabajador'] },
   { to: '/avisos',     label: 'Avisos de stock', icon: 'avisos',     roles: ['admin', 'trabajador'], alerta: true },
-  { to: '/turnos',     label: 'Turnos',          icon: 'turnos',     roles: ['admin', 'trabajador'] },
+  { to: '/turnos',     label: 'Turnos',          icon: 'turnos',     roles: ['trabajador'] },
   { to: '/reportes',   label: 'Reportes',        icon: 'reportes',   roles: ['admin'],               tag: 'Admin' },
 ]
 

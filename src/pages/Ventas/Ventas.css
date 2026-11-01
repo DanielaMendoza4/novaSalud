@@ -5,6 +5,8 @@
 .ventas-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
 .ventas-section-heading h2 { margin: 0; color: #10231e; font-size: 17px; }
 .ventas-section-heading p { margin: 5px 0 0; color: #566a74; font-size: 12px; }
+.ventas-searchbar .searchbar-input { color: #10231e; }
+.ventas-searchbar .searchbar-input::placeholder { color: #7a8b91; opacity: 1; }
 .ventas-feedback { margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; font-size: 13px; }
 .ventas-feedback.error, .ventas-inline-error { border: 1px solid #f5c2c0; background: #fff1f0; color: #b42318; }
 .ventas-feedback.success { border: 1px solid #b9e5d7; background: #e3f5ef; color: #096b5e; }

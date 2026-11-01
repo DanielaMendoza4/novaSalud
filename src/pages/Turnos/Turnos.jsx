@@ -12,9 +12,10 @@ import './Turnos.css'
 
 const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
 const texto = (value) => (value ? value : '—')
-
+const turnosDisponibles = ['mañana', 'tarde', 'noche']
 export default function Turnos() {
   const [turno, setTurno] = useState(null)
+  const [franja, setFranja] = useState('')
   const [fondo, setFondo] = useState('100.00')
   const [contado, setContado] = useState('')
   const [resultado, setResultado] = useState(null)
@@ -38,6 +39,10 @@ export default function Turnos() {
       setResultado(data)
       setTurno('diferencia' in data ? null : data)
       setContado('')
+      if ('diferencia' in data) {
+        setFranja('')
+        setFondo('')
+      }
       setConfirmClose(false)
       setState({ loading: false, error: '', saving: false })
     } catch (error) {
@@ -46,7 +51,11 @@ export default function Turnos() {
     }
   }
 
+  const formularioAperturaValido = Boolean(franja) && Number(fondo) >= 0
   const validCash = contado !== '' && Number.isFinite(Number(contado)) && Number(contado) >= 0
+  const abrirCaja = () => ejecutar(async () => {
+    return turnosService.abrir(Number(fondo), { franja })
+  })
   if (state.loading) return <div className="shared-card turnos-loading">Cargando turno...</div>
 
   return (
@@ -76,26 +85,29 @@ export default function Turnos() {
         ) : (
           <EmptyState icon="+" title="No hay un turno abierto" description="Abre tu caja para comenzar a registrar ventas. Se registrarán tu DNI y la hora de apertura automáticamente.">
             <div className="turnos-open-form">
+              <Field id="franja-turno" label="Turno">
+                <select id="franja-turno" value={franja} onChange={(event) => setFranja(event.target.value)}>
+                  <option value="">Selecciona un turno</option>
+                  {turnosDisponibles.map((opcion) => <option key={opcion} value={opcion}>{opcion[0].toUpperCase() + opcion.slice(1)}</option>)}
+                </select>
+              </Field>
               <Field id="fondo-inicial" label="Fondo inicial">
                 <div className="turnos-money-input"><span>S/</span><input id="fondo-inicial" type="number" min="0" step="0.01" value={fondo} onChange={(event) => setFondo(event.target.value)} /></div>
               </Field>
-              <Button fullWidth disabled={state.saving || Number(fondo) < 0} onClick={() => ejecutar(() => turnosService.abrir(Number(fondo)))}>Abrir caja</Button>
+              <Button fullWidth disabled={state.saving || !formularioAperturaValido} onClick={abrirCaja}>Abrir caja</Button>
             </div>
           </EmptyState>
         )}
         {resultado?.diferencia !== undefined && (
           <div className={`turnos-result ${resultado.diferencia === 0 ? 'balanced' : 'unbalanced'}`}>
             <h3>Turno cerrado</h3>
-            <div><span>Cajero (DNI)</span><strong>{texto(resultado.usuario_dni)}</strong></div>
-            <div><span>Apertura</span><strong>{formatFechaHora(resultado.apertura)}</strong></div>
-            <div><span>Cierre</span><strong>{formatFechaHora(resultado.cierre)}</strong></div>
             <div><span>Efectivo esperado</span><strong>{money(resultado.efectivo_esperado)}</strong></div>
             <div><span>Efectivo contado</span><strong>{money(resultado.efectivo_contado)}</strong></div>
             <div><span>Diferencia</span><strong>{money(resultado.diferencia)}</strong></div>
           </div>
         )}
       </section>
-      <Modal isOpen={confirmClose} onClose={() => setConfirmClose(false)} title="¿Cerrar caja?" footer={<><Button variant="outline" onClick={() => setConfirmClose(false)}>Cancelar</Button><Button onClick={() => ejecutar(() => turnosService.cerrar(Number(contado)))} loading={state.saving}>Confirmar cierre</Button></>}>
+      <Modal isOpen={confirmClose} onClose={() => setConfirmClose(false)} title="¿Cerrar caja?" footer={<><Button variant="outline" onClick={() => setConfirmClose(false)}>Cancelar</Button><Button onClick={() => ejecutar(() => turnosService.cerrar(Number(contado), { franja: turno?.franja }))} loading={state.saving}>Confirmar cierre</Button></>}> 
         <p>Vas a cerrar el turno con un efectivo contado de <strong>{money(contado)}</strong>. Se registrará la hora de cierre automáticamente.</p>
       </Modal>
     </div>

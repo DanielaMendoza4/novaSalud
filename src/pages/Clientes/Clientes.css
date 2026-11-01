@@ -6,6 +6,8 @@
 .clientes-list-header p, .clientes-form-heading p { margin: 5px 0 0; color: #566a74; font-size: 12px; }
 .clientes-form-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: #e3f5ef; color: #0d7f6f; font-size: 22px; font-weight: 500; }
 .clientes-form { display: grid; gap: 16px; margin-top: 24px; }
+.clientes-searchbar .searchbar-input { color: #10231e; }
+.clientes-searchbar .searchbar-input::placeholder { color: #7a8b91; opacity: 1; }
 .clientes-table { margin-top: 18px; border: 0; box-shadow: none; }
 .clientes-table .novasalud-table th { padding: 11px 14px; background: #f4f7f8; color: #566a74; font-size: 10px; }
 .clientes-table .novasalud-table td { height: 52px; padding: 10px 14px; }

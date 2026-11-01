@@ -20,7 +20,6 @@ const roleConfig = {
 }
 
 const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
-
 export default function Dashboard() {
   const { usuario } = useAuth()
   const config = roleConfig[usuario.rol] || roleConfig.trabajador
@@ -30,12 +29,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     let active = true
-    Promise.all([
-      resumenService.obtener(usuario.rol),
-      productosService.listar({ page: 1, limit: 20 })
-    ]).then(([summaryResponse, productResponse]) => {
+    const cargarResumen = () => resumenService.obtener(usuario.rol).then((summaryResponse) => {
       if (!active) return
       setSummary(summaryResponse)
+    })
+    Promise.all([cargarResumen(), productosService.listar({ page: 1, limit: 20 })]).then(([, productResponse]) => {
+      if (!active) return
       setProducts(productResponse.data || [])
       setState({ loading: false, error: '' })
     }).catch((error) => {
@@ -43,7 +42,12 @@ export default function Dashboard() {
     }).finally(() => {
       if (active) setState({ loading: false, error: '' })
     })
-    return () => { active = false }
+    const actualizarResumen = () => { cargarResumen().catch((error) => { if (active) setState({ loading: false, error: mensajeDeError(error) }) }) }
+    window.addEventListener('turno:actualizado', actualizarResumen)
+    return () => {
+      active = false
+      window.removeEventListener('turno:actualizado', actualizarResumen)
+    }
   }, [usuario.rol])
 
   if (state.loading) return <div className="panel-card">Cargando resumen...</div>
@@ -53,7 +57,7 @@ export default function Dashboard() {
     ventas: { title: 'Ventas de hoy', value: money(summary.ventas_hoy?.monto), subtitle: `${summary.ventas_hoy?.tickets || summary.ventas_hoy?.transacciones || 0} tickets`, variant: 'primary' },
     stock: { title: 'Stock bajo', value: summary.stock_bajo?.cantidad || 0, subtitle: `${summary.stock_bajo?.criticos || 0} críticos`, variant: 'danger' },
     vencimientos: { title: 'Por vencer', value: summary.por_vencer?.cantidad || 0, subtitle: `En los próximos ${summary.por_vencer?.dias || 0} días`, variant: 'warning' },
-    inventario: { title: 'Inventario', value: summary.inventario?.items || 0, subtitle: 'Ítems registrados', variant: 'info' },
+    inventario: { title: 'Inventario', value: summary.inventario?.items || 0, subtitle: 'Unidades en stock', variant: 'info' },
     caja: { title: 'Efectivo en caja', value: money(summary.efectivo_en_caja), subtitle: summary.turno ? `Turno #${summary.turno.id} abierto` : 'Sin turno abierto', variant: 'success' },
     digitales: { title: 'Pagos digitales', value: money(summary.pagos_digitales), subtitle: 'Yape, Plin y tarjeta', variant: 'info' },
     espera: { title: 'Ventas en espera', value: summary.ventas_en_espera || 0, subtitle: 'Pendientes de cobro', variant: 'warning' }

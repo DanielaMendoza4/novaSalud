@@ -62,11 +62,12 @@ export default function Clientes() {
         <section className="shared-card clientes-list-card">
           <div className="clientes-list-header">
             <div>
-              <h2>Directorio de clientes</h2>
+              <h2>registro de clientes</h2>
               <p>{clientes.length} clientes registrados</p>
             </div>
           </div>
           <SearchBar
+            className="clientes-searchbar"
             value={query}
             onChange={setQuery}
             placeholder="Buscar por nombre o documento..."
