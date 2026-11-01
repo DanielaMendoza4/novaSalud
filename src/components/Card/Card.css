@@ -1,9 +1,18 @@
+/* ==========================================================================
+   Componente Card
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
 .novasalud-card {
   background: var(--bg-surface, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 16px;
   padding: 22px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.02);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
@@ -13,7 +22,9 @@
 
 .novasalud-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 10px 24px -4px rgba(15, 23, 42, 0.08),
+    0 2px 6px -1px rgba(0, 0, 0, 0.04);
   border-color: #cbd5e1;
 }
 
@@ -48,11 +59,14 @@
   transform: scale(1.08);
 }
 
-/* Variantes temáticas */
+/* --------------------------------------------------------------------------
+   Variantes temáticas
+   -------------------------------------------------------------------------- */
 .novasalud-card.primary .card-icon-wrapper {
   background: #99f6e4;
   color: #115e59;
 }
+
 .novasalud-card.primary {
   border-left: 4px solid #0d9488;
 }
@@ -61,6 +75,7 @@
   background: #86efac;
   color: #166534;
 }
+
 .novasalud-card.success {
   border-left: 4px solid #10b981;
 }
@@ -69,6 +84,7 @@
   background: #fde68a;
   color: #92400e;
 }
+
 .novasalud-card.warning {
   border-left: 4px solid #f59e0b;
 }
@@ -77,6 +93,7 @@
   background: #fecaca;
   color: #991b1b;
 }
+
 .novasalud-card.danger {
   border-left: 4px solid #ef4444;
 }
@@ -85,10 +102,14 @@
   background: #bfdbfe;
   color: #1e40af;
 }
+
 .novasalud-card.info {
   border-left: 4px solid #3b82f6;
 }
 
+/* --------------------------------------------------------------------------
+   Valor y tendencia
+   -------------------------------------------------------------------------- */
 .card-value {
   font-size: 28px;
   font-weight: 800;
