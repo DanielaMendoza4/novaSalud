@@ -13,8 +13,14 @@ import './Turnos.css'
 const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
 const texto = (value) => (value ? value : '—')
 const turnosDisponibles = ['mañana', 'tarde', 'noche']
+const LONGITUD_DNI = 8
+// Un turno abierto también trae "diferencia", pero en null: solo el cierre le da un valor.
+const esCierre = (data) => typeof data?.diferencia === 'number'
+
 export default function Turnos() {
   const [turno, setTurno] = useState(null)
+  const [dni, setDni] = useState('')
+  const [busquedaDni, setBusquedaDni] = useState({ dni: '', nombre: '', error: '' })
   const [franja, setFranja] = useState('')
   const [fondo, setFondo] = useState('100.00')
   const [contado, setContado] = useState('')
@@ -32,14 +38,34 @@ export default function Turnos() {
 
   useEffect(() => { cargar() }, [])
 
+  // Busca el nombre al completar el DNI; "cancelado" descarta respuestas de un DNI anterior.
+  useEffect(() => {
+    if (dni.length !== LONGITUD_DNI) return undefined
+    let cancelado = false
+    turnosService.buscarTrabajador(dni)
+      .then((trabajador) => {
+        if (!cancelado) setBusquedaDni({ dni, nombre: trabajador.nombre, error: '' })
+      })
+      .catch((error) => {
+        if (!cancelado) setBusquedaDni({ dni, nombre: '', error: mensajeDeError(error) })
+      })
+    return () => { cancelado = true }
+  }, [dni])
+
+  const dniCompleto = dni.length === LONGITUD_DNI
+  const busquedaVigente = dniCompleto && busquedaDni.dni === dni
+  const nombre = busquedaVigente ? busquedaDni.nombre : ''
+  const errorDni = busquedaVigente ? busquedaDni.error : ''
+
   const ejecutar = async (action) => {
     setState((current) => ({ ...current, saving: true, error: '' }))
     try {
       const data = await action()
       setResultado(data)
-      setTurno('diferencia' in data ? null : data)
+      setTurno(esCierre(data) ? null : data)
       setContado('')
-      if ('diferencia' in data) {
+      if (esCierre(data)) {
+        setDni('')
         setFranja('')
         setFondo('')
       }
@@ -51,10 +77,10 @@ export default function Turnos() {
     }
   }
 
-  const formularioAperturaValido = Boolean(franja) && Number(fondo) >= 0
+  const formularioAperturaValido = Boolean(nombre) && Boolean(franja) && fondo !== '' && Number(fondo) >= 0
   const validCash = contado !== '' && Number.isFinite(Number(contado)) && Number(contado) >= 0
   const abrirCaja = () => ejecutar(async () => {
-    return turnosService.abrir(Number(fondo), { franja })
+    return turnosService.abrir(Number(fondo), { franja, dni, nombre })
   })
   if (state.loading) return <div className="shared-card turnos-loading">Cargando turno...</div>
 
@@ -70,7 +96,8 @@ export default function Turnos() {
               <Badge variant="success" dot>Abierto</Badge>
             </div>
             <div className="turnos-details">
-              <div><span>Cajero (DNI)</span><strong>{texto(turno.usuario_dni)}</strong></div>
+              <div><span>Cajero</span><strong>{texto(turno.usuario_nombre)}</strong></div>
+              <div><span>DNI</span><strong>{texto(turno.usuario_dni)}</strong></div>
               <div><span>Turno</span><strong className="turnos-capitalize">{texto(turno.franja)}</strong></div>
               <div><span>Apertura</span><strong>{formatFechaHora(turno.apertura)}</strong></div>
               <div><span>Fondo inicial</span><strong className="turnos-money">{money(turno.fondo_inicial)}</strong></div>
@@ -83,8 +110,14 @@ export default function Turnos() {
             </div>
           </>
         ) : (
-          <EmptyState icon="+" title="No hay un turno abierto" description="Abre tu caja para comenzar a registrar ventas. Se registrarán tu DNI y la hora de apertura automáticamente.">
+          <EmptyState icon="+" title="No hay un turno abierto" description="Ingresa tu DNI y abre tu caja para comenzar a registrar ventas. La hora de apertura se registrará automáticamente.">
             <div className="turnos-open-form">
+              <Field id="dni-trabajador" label="DNI" error={errorDni} hint={dniCompleto && !busquedaVigente ? 'Buscando trabajador...' : undefined}>
+                <input id="dni-trabajador" type="text" inputMode="numeric" autoComplete="off" maxLength={LONGITUD_DNI} placeholder="8 dígitos" value={dni} onChange={(event) => setDni(event.target.value.replace(/\D/g, ''))} />
+              </Field>
+              <Field id="nombre-trabajador" label="Nombre">
+                <input id="nombre-trabajador" type="text" readOnly placeholder="Se completa con el DNI" value={nombre} />
+              </Field>
               <Field id="franja-turno" label="Turno">
                 <select id="franja-turno" value={franja} onChange={(event) => setFranja(event.target.value)}>
                   <option value="">Selecciona un turno</option>
@@ -98,7 +131,7 @@ export default function Turnos() {
             </div>
           </EmptyState>
         )}
-        {resultado?.diferencia !== undefined && (
+        {esCierre(resultado) && (
           <div className={`turnos-result ${resultado.diferencia === 0 ? 'balanced' : 'unbalanced'}`}>
             <h3>Turno cerrado</h3>
             <div><span>Efectivo esperado</span><strong>{money(resultado.efectivo_esperado)}</strong></div>

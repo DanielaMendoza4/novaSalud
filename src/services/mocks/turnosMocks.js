@@ -1,5 +1,6 @@
-import { ahoraEnLima } from '../../utils/fechas'
+import { ApiError } from '../http'
 import { usuariosDemo } from '../../data/usuarios'
+import { ahoraEnLima } from '../../utils/fechas'
 import { resumenMock } from './resumenMocks'
 import { ventasMock } from './ventasMocks'
 
@@ -154,6 +155,18 @@ const efectivoDeVenta = (venta) => {
 
 export const listarTurnosMock = () => turnos.map((turno) => ({ ...turno }))
 
+export const buscarTrabajadorMock = (dni) => {
+  const trabajador = usuariosDemo.find((usuario) => usuario.dni === dni)
+  if (!trabajador) {
+    throw new ApiError({
+      codigo: 'TRABAJADOR_NO_ENCONTRADO',
+      mensaje: 'No hay ningún trabajador registrado con ese DNI.',
+      status: 404
+    })
+  }
+  return { dni: trabajador.dni, nombre: trabajador.nombre }
+}
+
 export const abrirTurnoMock = (fondo_inicial, datos = {}) => {
   const cajero = datosCajero()
   const id = Math.max(0, ...turnos.map((turno) => Number(turno.id) || 0)) + 1
@@ -171,7 +184,7 @@ export const abrirTurnoMock = (fondo_inicial, datos = {}) => {
     diferencia: null,
     estado: 'abierta',
     usuario_id: cajero.usuario_id,
-    usuario_nombre: cajero.usuario_nombre,
+    usuario_nombre: datos.nombre || cajero.usuario_nombre,
     usuario_dni: datos.dni || cajero.usuario_dni,
     observaciones: '',
     demo: false
