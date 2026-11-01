@@ -1,3 +1,10 @@
+/* ==========================================================================
+   Componente AlertBell
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Botón de campana
+   -------------------------------------------------------------------------- */
 .alert-bell-container {
   position: relative;
   display: inline-block;
@@ -49,13 +56,27 @@
 }
 
 @keyframes bell-ring {
-  0%, 100% { transform: rotate(0); }
-  20% { transform: rotate(15deg); }
-  40% { transform: rotate(-15deg); }
-  60% { transform: rotate(8deg); }
-  80% { transform: rotate(-8deg); }
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(15deg);
+  }
+  40% {
+    transform: rotate(-15deg);
+  }
+  60% {
+    transform: rotate(8deg);
+  }
+  80% {
+    transform: rotate(-8deg);
+  }
 }
 
+/* --------------------------------------------------------------------------
+   Contador de alertas
+   -------------------------------------------------------------------------- */
 .alert-bell-badge {
   position: absolute;
   top: -4px;
@@ -78,12 +99,20 @@
 }
 
 @keyframes pulse-badge {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
-/* Dropdown popover */
+/* --------------------------------------------------------------------------
+   Dropdown popover
+   -------------------------------------------------------------------------- */
 .alert-bell-dropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -93,7 +122,9 @@
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 16px 36px -4px rgba(15, 23, 42, 0.16),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
   z-index: 1000;
   overflow: hidden;
   animation: dropdown-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -110,6 +141,9 @@
   }
 }
 
+/* --------------------------------------------------------------------------
+   Encabezado del desplegable
+   -------------------------------------------------------------------------- */
 .alert-dropdown-header {
   display: flex;
   align-items: center;
@@ -154,6 +188,9 @@
   text-decoration: underline;
 }
 
+/* --------------------------------------------------------------------------
+   Lista de alertas
+   -------------------------------------------------------------------------- */
 .alert-dropdown-list {
   list-style: none;
   margin: 0;
@@ -235,6 +272,9 @@
   color: #94a3b8;
 }
 
+/* --------------------------------------------------------------------------
+   Estado vacío
+   -------------------------------------------------------------------------- */
 .alert-dropdown-empty {
   padding: 32px 20px;
   text-align: center;
@@ -246,6 +286,9 @@
   margin-bottom: 8px;
 }
 
+/* --------------------------------------------------------------------------
+   Pie del desplegable
+   -------------------------------------------------------------------------- */
 .alert-dropdown-footer {
   padding: 10px 16px;
   border-top: 1px solid #f1f5f9;

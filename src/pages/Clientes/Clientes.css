@@ -1,18 +1,228 @@
-.clientes-page { color: #10231e; }
-.clientes-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
-.clientes-list-header, .clientes-form-heading { display: flex; align-items: center; gap: 12px; }
-.clientes-list-header { justify-content: space-between; margin-bottom: 16px; }
-.clientes-list-header h2, .clientes-form-heading h2 { margin: 0; color: #10231e; font-size: 17px; }
-.clientes-list-header p, .clientes-form-heading p { margin: 5px 0 0; color: #566a74; font-size: 12px; }
-.clientes-form-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: #e3f5ef; color: #0d7f6f; font-size: 22px; font-weight: 500; }
-.clientes-form { display: grid; gap: 16px; margin-top: 24px; }
-.clientes-searchbar .searchbar-input { color: #10231e; }
-.clientes-searchbar .searchbar-input::placeholder { color: #7a8b91; opacity: 1; }
-.clientes-table { margin-top: 18px; border: 0; box-shadow: none; }
-.clientes-table .novasalud-table th { padding: 11px 14px; background: #f4f7f8; color: #566a74; font-size: 10px; }
-.clientes-table .novasalud-table td { height: 52px; padding: 10px 14px; }
-.clientes-loading { padding: 48px 0; color: #566a74; text-align: center; font-size: 13px; }
-.clientes-feedback { margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; font-size: 13px; }
-.clientes-feedback.error { background: #fff1f0; border: 1px solid #f5c2c0; color: #b42318; }
-.clientes-feedback.success { background: #e3f5ef; border: 1px solid #b9e5d7; color: #096b5e; }
-@media (max-width: 900px) { .clientes-layout { grid-template-columns: 1fr; } .clientes-form-card { order: 2; } }
+/* ==========================================================================
+   Página Clientes
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+.clientes-page {
+  color: #10231e;
+}
+
+/* --------------------------------------------------------------------------
+   Encabezado
+   -------------------------------------------------------------------------- */
+.clientes-list-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.clientes-list-header h2 {
+  margin: 0;
+  color: #10231e;
+  font-size: 17px;
+}
+
+.clientes-list-header p {
+  margin: 5px 0 0;
+  color: #566a74;
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Filtros por tipo
+   -------------------------------------------------------------------------- */
+.clientes-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid #dde7e4;
+  border-radius: 10px;
+  background: #f4f7f8;
+}
+
+.clientes-filtros button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #566a74;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.clientes-filtros button:hover {
+  color: #10231e;
+}
+
+.clientes-filtros button:focus-visible {
+  outline: 2px solid #0d7f6f;
+  outline-offset: 1px;
+}
+
+.clientes-filtros button.active {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(16, 35, 30, 0.12);
+  color: #0d7f6f;
+  font-weight: 700;
+}
+
+.clientes-filtro-conteo {
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  background: #e8efed;
+  color: #566a74;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.clientes-filtros button.active .clientes-filtro-conteo {
+  background: #e3f5ef;
+  color: #0d7f6f;
+}
+
+/* --------------------------------------------------------------------------
+   Búsqueda
+   -------------------------------------------------------------------------- */
+.clientes-searchbar .searchbar-input {
+  color: #10231e;
+}
+
+.clientes-searchbar .searchbar-input::placeholder {
+  color: #7a8b91;
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Tabla
+   -------------------------------------------------------------------------- */
+.clientes-table {
+  margin-top: 16px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.clientes-table .novasalud-table th {
+  padding: 11px 14px;
+  border-bottom: 0;
+  background: #f4f7f8;
+  color: #566a74;
+  font-size: 10px;
+}
+
+.clientes-table .novasalud-table th:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.clientes-table .novasalud-table th:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.clientes-table .novasalud-table td {
+  height: 56px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #edf2f0;
+}
+
+.clientes-table .novasalud-table tbody tr:last-child td {
+  border-bottom: 1px solid #edf2f0;
+}
+
+.clientes-table .table-footer-bar {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 14px 0;
+  border-top: 0;
+  background: transparent;
+  color: #566a74;
+}
+
+.clientes-identidad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.clientes-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.clientes-avatar.persona {
+  background: #e3f5ef;
+  color: #0d7f6f;
+}
+
+.clientes-avatar.empresa {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.clientes-identidad-texto {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.clientes-identidad-texto strong {
+  color: #10231e;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.clientes-identidad-texto small {
+  color: #566a74;
+  font-size: 12px;
+}
+
+.clientes-documento {
+  color: #33474f;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Estados y mensajes
+   -------------------------------------------------------------------------- */
+.clientes-loading {
+  padding: 48px 0;
+  color: #566a74;
+  text-align: center;
+  font-size: 13px;
+}
+
+.clientes-feedback {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.clientes-feedback.error {
+  background: #fff1f0;
+  border: 1px solid #f5c2c0;
+  color: #b42318;
+}

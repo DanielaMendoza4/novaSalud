@@ -105,7 +105,7 @@ Solo admin:
 
 ### Clientes
 
-- `GET /api/clientes?q=` busca por nombre o documento.
+- `GET /api/clientes?q=` busca por nombre o documento. Cada cliente puede incluir `dni_requerido` (booleano): con `false`, la página de Clientes muestra "No" y oculta el número; si el campo no llega, se muestra "Sí".
 - `POST /api/clientes` con `{ "tipo_doc": "DNI", "numero_doc": "12345678", "nombre": "..." }`.
 
 Validación: DNI de 8 dígitos, RUC de 11.
