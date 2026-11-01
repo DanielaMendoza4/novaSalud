@@ -18,6 +18,9 @@
 .turnos-result.unbalanced { background: #fff1f0; color: #b42318; }
 .turnos-result strong { color: inherit; font-size: 14px; }
 .turnos-open-form { display: grid; width: min(100%, 340px); gap: 16px; margin-top: 10px; text-align: left; }
+.turnos-user-found { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid #b9e5d7; border-radius: 9px; background: #e3f5ef; color: #096b5e; }
+.turnos-user-found strong { font-size: 13px; }
+.turnos-user-found span { font-size: 12px; }
 .turnos-error { width: min(100%, 560px); margin: 0 auto 16px; padding: 12px 14px; border: 1px solid #f5c2c0; border-radius: 10px; background: #fff1f0; color: #b42318; font-size: 13px; }
 .turnos-loading { width: min(100%, 560px); margin: 0 auto; color: #566a74; text-align: center; }
 .turnos-capitalize { text-transform: capitalize; }

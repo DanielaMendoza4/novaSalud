@@ -1,18 +1,41 @@
-import { request, mockDelay, useMocks } from './http'
+import { ApiError, request, mockDelay, useMocks } from './http'
 import { ventasDetalleMock, ventasMock } from './mocks/ventasMocks'
 import { productosMock } from './mocks/productosMocks'
 import { ahoraEnLima } from '../utils/fechas'
 
-let ventasMockActuales = ventasMock.map((venta) => ({ ...venta }))
-const ventasDetalleMockActuales = { ...ventasDetalleMock }
-let siguienteIdMock = Math.max(Date.now(), ...ventasMock.map((venta) => Number(venta.id) + 1))
-const redondear = (value) => Number(value.toFixed(2))
+const consumirStock = (items) => {
+  const cantidades = new Map()
+  items.forEach((item) => {
+    const productoId = Number(item.producto_id)
+    cantidades.set(productoId, (cantidades.get(productoId) || 0) + Number(item.cantidad))
+  })
+
+  const hayStock = [...cantidades].every(([productoId, cantidad]) => {
+    const producto = productosMock.find((actual) => actual.id === productoId)
+    return producto && Number.isInteger(cantidad) && cantidad > 0 && producto.stock_total >= cantidad
+  })
+  if (!hayStock) {
+    throw new ApiError({
+      codigo: 'STOCK_INSUFICIENTE',
+      mensaje: 'El stock disponible no alcanza para completar la venta.',
+      status: 409
+    })
+  }
+
+  cantidades.forEach((cantidad, productoId) => {
+    const producto = productosMock.find((actual) => actual.id === productoId)
+    producto.stock_total -= cantidad
+    if (producto.stock_total === 0) producto.estado = 'agotado'
+    else if (producto.stock_total <= producto.stock_minimo) producto.estado = 'stock_bajo'
+    else if (!['por_vencer', 'vencido'].includes(producto.estado)) producto.estado = 'normal'
+  })
+}
 
 export const ventasService = {
   listar: ({ estado = '', desde = '', hasta = '', page = 1, limit = 20 } = {}) => {
     if (useMocks) {
       const rol = JSON.parse(localStorage.getItem('novasalud_usuario') || 'null')?.rol
-      const data = ventasMockActuales.filter((venta) =>
+      const data = ventasMock.filter((venta) =>
         (!estado || venta.estado === estado) &&
         (!desde || venta.fecha >= desde) &&
         (!hasta || venta.fecha <= `${hasta}T23:59:59`)
@@ -27,65 +50,40 @@ export const ventasService = {
     return request(`/ventas?${params}`)
   },
   obtener: (id) => useMocks
-    ? mockDelay(ventasDetalleMockActuales[Number(id)] || null)
+    ? mockDelay(ventasDetalleMock[Number(id)] || null)
     : request(`/ventas/${id}`),
   crear: (venta) => {
-    if (!useMocks) return request('/ventas', { method: 'POST', body: JSON.stringify(venta) })
-    const items = venta.items.map((item) => {
-      const product = productosMock.find((entry) => entry.id === item.producto_id)
-      if (!product) throw new Error(`No se encontró el producto ${item.producto_id}.`)
-      return {
-        producto_id: item.producto_id,
-        nombre: product.nombre,
-        cantidad: item.cantidad,
-        precio_unitario: product.precio,
-        subtotal: redondear(product.precio * item.cantidad)
+    if (useMocks) {
+      const id = Date.now()
+      if (venta.estado === 'pagada') consumirStock(venta.items)
+      const nuevaVenta = {
+        id,
+        serie_numero: 'B001-DEMO',
+        fecha: ahoraEnLima(),
+        comprobante: venta.comprobante,
+        estado: venta.estado,
+        items: venta.items,
+        subtotal: 0,
+        igv: 0,
+        total: venta.total || 0,
+        pagos: venta.pagos || [],
+        vuelto: 0
       }
-    })
-    const total = redondear(items.reduce((sum, item) => sum + item.subtotal, 0))
-    const subtotal = redondear(total / 1.18)
-    const pagos = venta.pagos || []
-    const sale = {
-      id: siguienteIdMock++,
-      serie_numero: `${venta.comprobante === 'factura' ? 'F001' : 'B001'}-${String(siguienteIdMock - 1).slice(-4)}`,
-      fecha: ahoraEnLima(),
-      comprobante: venta.comprobante,
-      estado: venta.estado,
-      items,
-      subtotal,
-      igv: redondear(total - subtotal),
-      total,
-      pagos,
-      vuelto: redondear(Math.max(0, pagos.filter((pago) => pago.metodo === 'efectivo').reduce((sum, pago) => sum + pago.monto, 0) - total))
+      ventasMock.unshift(nuevaVenta)
+      return mockDelay(nuevaVenta)
     }
-    ventasMockActuales = [sale, ...ventasMockActuales]
-    ventasDetalleMockActuales[sale.id] = sale
-    return mockDelay(sale)
+    return request('/ventas', { method: 'POST', body: JSON.stringify(venta) })
   },
   cobrar: (id, pagos) => {
-    if (!useMocks) return request(`/ventas/${id}/cobrar`, { method: 'PUT', body: JSON.stringify({ pagos }) })
-    const sale = ventasDetalleMockActuales[Number(id)]
-    if (!sale || sale.estado !== 'espera') throw new Error('La venta en espera ya no existe.')
-    const updatedSale = {
-      ...sale,
-      estado: 'pagada',
-      pagos,
-      vuelto: redondear(Math.max(0, pagos.filter((pago) => pago.metodo === 'efectivo').reduce((sum, pago) => sum + pago.monto, 0) - sale.total))
+    if (useMocks) {
+      const venta = ventasMock.find((actual) => actual.id === Number(id))
+      if (venta?.estado === 'espera') consumirStock(venta.items)
+      const actualizada = venta ? { ...venta, id: Number(id), estado: 'pagada', pagos, vuelto: 0 } : { id: Number(id), estado: 'pagada', pagos, vuelto: 0 }
+      if (venta) Object.assign(venta, actualizada)
+      return mockDelay(actualizada)
     }
-    ventasDetalleMockActuales[Number(id)] = updatedSale
-    ventasMockActuales = ventasMockActuales.map((venta) => venta.id === Number(id)
-      ? { ...venta, estado: 'pagada', metodo_pago: pagos[0]?.metodo }
-      : venta)
-    return mockDelay(updatedSale)
+    return request(`/ventas/${id}/cobrar`, { method: 'PUT', body: JSON.stringify({ pagos }) })
   },
-  descartar: (id) => {
-    if (!useMocks) return request(`/ventas/${id}`, { method: 'DELETE' })
-    if (!ventasDetalleMockActuales[Number(id)] || !ventasMockActuales.some((venta) => venta.id === Number(id))) {
-      throw new Error('La venta en espera ya no existe.')
-    }
-    ventasMockActuales = ventasMockActuales.filter((venta) => venta.id !== Number(id))
-    delete ventasDetalleMockActuales[Number(id)]
-    return mockDelay(null)
-  },
+  descartar: (id) => useMocks ? mockDelay(null) : request(`/ventas/${id}`, { method: 'DELETE' }),
   anular: (id) => useMocks ? mockDelay(null) : request(`/ventas/${id}/anular`, { method: 'PUT' })
 }

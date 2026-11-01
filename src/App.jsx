@@ -35,6 +35,7 @@ function AppRoutes() {
         <Route path="clientes" element={<RoleRoute roles={['admin', 'trabajador']}><Clientes /></RoleRoute>} />
         <Route path="turnos" element={<RoleRoute roles={['admin', 'trabajador']}><Turnos /></RoleRoute>} />
         <Route path="avisos" element={<RoleRoute roles={['admin', 'trabajador']}><Avisos /></RoleRoute>} />
+        {/* TODO: conectar la pantalla CRUD de inventario a los endpoints admin de productos. */}
         <Route path="inventario" element={<RoleRoute roles={['admin']}><Inventario /></RoleRoute>} />
         <Route path="reportes" element={<RoleRoute roles={['admin']}><Reportes /></RoleRoute>} />
       </Route>

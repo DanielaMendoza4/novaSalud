@@ -14,9 +14,6 @@ import './Ventas.css'
 const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`
 const paymentMethods = ['efectivo', 'yape', 'plin', 'tarjeta']
 const initialClientForm = { tipo_doc: 'DNI', numero_doc: '', nombre: '' }
-const formatServiceError = (error) => error.codigo
-  ? `${error.codigo}: ${mensajeDeError(error)}`
-  : mensajeDeError(error)
 
 export default function Ventas() {
   const { usuario } = useAuth()
@@ -25,13 +22,10 @@ export default function Ventas() {
   const [clients, setClients] = useState([])
   const [turno, setTurno] = useState(null)
   const [waitingSales, setWaitingSales] = useState([])
-  const [waitingLoading, setWaitingLoading] = useState(true)
-  const [waitingError, setWaitingError] = useState('')
   const [query, setQuery] = useState('')
   const [cart, setCart] = useState([])
   const [clientId, setClientId] = useState('')
   const [clientForm, setClientForm] = useState(initialClientForm)
-  const [clientFormState, setClientFormState] = useState({ saving: false, error: '', success: '' })
   const [comprobante, setComprobante] = useState('boleta')
   const [method, setMethod] = useState('efectivo')
   const [paid, setPaid] = useState('')
@@ -39,41 +33,20 @@ export default function Ventas() {
   const [rowAction, setRowAction] = useState(null)
   const [state, setState] = useState({ loading: true, error: '', saving: false, success: '' })
 
-  useEffect(() => {
-    let active = true
-    productosService.listar({ q: query, page: 1, limit: 20 })
-      .then((response) => {
-        if (active) setProducts(response.data)
-      })
-      .catch((error) => {
-        if (active) setState((current) => ({ ...current, error: formatServiceError(error) }))
-      })
-      .finally(() => {
-        if (active) setState((current) => ({ ...current, loading: false }))
-      })
-    return () => { active = false }
-  }, [query])
+  const load = () => Promise.all([
+    productosService.listar({ q: query, page: 1, limit: 20 }),
+    clientesService.listar(),
+    turnosService.actual(),
+    ventasService.listar({ estado: 'espera' })
+  ]).then(([productResponse, clientResponse, currentTurn, waitingResponse]) => {
+    setProducts(productResponse.data)
+    setClients(clientResponse)
+    setTurno(currentTurn)
+    setWaitingSales(waitingResponse.data)
+    setState((current) => ({ ...current, loading: false, error: '' }))
+  }).catch((error) => setState((current) => ({ ...current, loading: false, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) })))
 
-  useEffect(() => {
-    let active = true
-    Promise.allSettled([
-      clientesService.listar(),
-      turnosService.actual(),
-      ventasService.listar({ estado: 'espera' })
-    ]).then(([clientResult, turnResult, waitingResult]) => {
-      if (!active) return
-      const errors = []
-      if (clientResult.status === 'fulfilled') setClients(clientResult.value)
-      else errors.push(`Clientes: ${formatServiceError(clientResult.reason)}`)
-      if (turnResult.status === 'fulfilled') setTurno(turnResult.value)
-      else errors.push(`Caja: ${formatServiceError(turnResult.reason)}`)
-      if (waitingResult.status === 'fulfilled') setWaitingSales(waitingResult.value.data)
-      else setWaitingError(formatServiceError(waitingResult.reason))
-      if (errors.length) setState((current) => ({ ...current, error: errors.join(' ') }))
-      setWaitingLoading(false)
-    })
-    return () => { active = false }
-  }, [])
+  useEffect(() => { load() }, [query])
 
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0), [cart])
   const cash = method === 'efectivo' ? Number(paid || 0) : 0
@@ -83,38 +56,13 @@ export default function Ventas() {
     ? `${clientForm.tipo_doc} debe tener ${clientDocumentLength} dígitos.`
     : ''
   const clientFormValid = clientForm.numero_doc.length === clientDocumentLength && clientForm.nombre.trim().length > 0
-
-  const createClient = async (event) => {
-    event.preventDefault()
-    if (!clientFormValid) return
-
-    setClientFormState({ saving: true, error: '', success: '' })
-    try {
-      const client = await clientesService.crear(clientForm)
-      setClients((current) => [...current, client])
-      setClientId(String(client.id))
-      setClientForm(initialClientForm)
-      setClientFormState({ saving: false, error: '', success: 'Cliente creado correctamente.' })
-    } catch (error) {
-      setClientFormState({
-        saving: false,
-        error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error),
-        success: ''
-      })
-    }
-  }
+  const clientFormHasData = Boolean(clientForm.numero_doc || clientForm.nombre.trim())
 
   const addProduct = (product) => {
     if (['agotado', 'vencido'].includes(product.estado) || product.stock_total <= 0) {
       setState((current) => ({ ...current, error: 'PRODUCTO_NO_DISPONIBLE: Este producto no se puede agregar.' }))
       return
     }
-    const existing = cart.find((item) => item.producto_id === product.id)
-    if (existing && existing.cantidad >= existing.stock) {
-      setQuantityError(`No puedes agregar más de ${existing.stock} unidades de ${existing.nombre}.`)
-      return
-    }
-    setQuantityError('')
     setCart((current) => {
       const found = current.find((item) => item.producto_id === product.id)
       if (found) {
@@ -145,49 +93,57 @@ export default function Ventas() {
       setState((current) => ({ ...current, error: 'TURNO_CERRADO: Debes abrir una caja antes de vender.' }))
       return
     }
-    const selectedClient = clients.find((client) => String(client.id) === clientId)
-    if (comprobante === 'factura' && selectedClient?.tipo_doc !== 'RUC') {
-      setState((current) => ({ ...current, error: 'Para emitir una factura, selecciona un cliente con RUC.' }))
-      return
-    }
     if (estado === 'pagada' && method === 'efectivo' && cash < total) {
       setState((current) => ({ ...current, error: 'El efectivo recibido no cubre el total.' }))
       return
     }
+    if (clientFormHasData && !clientFormValid) {
+      setState((current) => ({ ...current, error: 'Completa correctamente los datos del cliente antes de cobrar.' }))
+      return
+    }
     setState((current) => ({ ...current, saving: true, error: '', success: '' }))
     try {
-      const sale = await ventasService.crear({
-        cliente_id: clientId ? Number(clientId) : null,
+      let saleClientId = clientId
+      if (clientFormHasData) {
+        const client = await clientesService.crear(clientForm)
+        setClients((current) => [...current, client])
+        saleClientId = String(client.id)
+        setClientId(saleClientId)
+        setClientForm(initialClientForm)
+      }
+      const createdSale = await ventasService.crear({
+        cliente_id: saleClientId ? Number(saleClientId) : null,
         comprobante,
         estado,
+        total,
         items: cart.map(({ producto_id, cantidad }) => ({ producto_id, cantidad })),
-        ...(estado === 'pagada' ? { pagos: [{ metodo: method, monto: method === 'efectivo' ? cash : total }] } : {})
+        ...(estado === 'pagada' ? { pagos: [{ metodo: method, monto: Number(paid || total) }] } : {})
       })
       if (estado === 'espera') {
-        setWaitingSales((current) => [sale, ...current])
+        setWaitingSales((current) => [...current, createdSale])
       }
       setCart([])
       setPaid('')
-      setState({ loading: false, saving: false, error: '', success: estado === 'espera' ? 'Venta guardada en espera.' : `Venta cobrada. Vuelto: ${money(change)}` })
+      setState({ loading: false, saving: false, error: '', success: estado === 'espera' ? 'Venta guardada en espera.' : `Cobro exitoso. Vuelto: ${money(change)}` })
     } catch (error) {
-      setState((current) => ({ ...current, saving: false, error: formatServiceError(error) }))
+      setState((current) => ({ ...current, saving: false, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) }))
     }
   }
 
   if (state.loading) return <div className="shared-card ventas-loading">Cargando punto de venta...</div>
   return (
-    <div className="ventas-page split-scroll">
+    <div className="ventas-page">
       <PageHeader title="Punto de Venta" subtitle="Busca productos y agrégalos al carrito." />
       {state.error && <div className="ventas-feedback error" role="alert">{state.error}</div>}
       {state.success && <div className="ventas-feedback success" role="status">{state.success}</div>}
-      <div className={`ventas-layout split-scroll ${esAdministrador ? 'admin' : ''}`}>
+      <div className="ventas-layout">
         <div className="ventas-main-column">
           <section className="shared-card ventas-products-card">
             <div className="ventas-section-heading">
               <div><h2>Buscar productos</h2><p>Selecciona un producto para añadirlo al carrito.</p></div>
               <Badge variant="neutral">{products.length} resultados</Badge>
             </div>
-            <SearchBar value={query} onChange={setQuery} placeholder="Buscar por nombre o código..." showScannerBadge={false} autoFocus={false} />
+            <SearchBar className="ventas-searchbar" value={query} onChange={setQuery} placeholder="Buscar por nombre o código..." showScannerBadge={false} autoFocus={false} />
             <div className="ventas-product-grid">
               {products.length === 0 ? <EmptyState icon="⌕" title="No se encontraron productos" /> : products.map((product) => {
                 const disabled = ['agotado', 'vencido'].includes(product.estado)
@@ -241,53 +197,33 @@ export default function Ventas() {
           </section>
 
           <section className="shared-card ventas-waiting-card">
-            <div className="ventas-section-heading"><div><h2>Ventas en espera</h2><p>Cobra o descarta ventas guardadas.</p></div><Badge variant="neutral">{waitingSales.length}</Badge></div>
-            {waitingLoading ? <p className="ventas-loading">Cargando ventas en espera...</p> : waitingError ? null : waitingSales.length === 0 ? <EmptyState icon="◷" title="No hay ventas en espera." /> : waitingSales.map((sale) => (
+            <div className="ventas-section-heading"><div><h2>Ventas en espera</h2><p>Continúa o descarta ventas guardadas.</p></div><Badge variant="neutral">{waitingSales.length}</Badge></div>
+            {waitingSales.length === 0 ? <EmptyState icon="◷" title="No hay ventas en espera." /> : waitingSales.map((sale) => (
               <div className="ventas-waiting-row" key={sale.id}>
                 <div><strong>{sale.serie_numero}</strong><span>{formatFecha(sale.fecha)} · {formatHora(sale.fecha)}</span></div>
                 <strong>{money(sale.total)}</strong>
                 <div className="ventas-waiting-actions">
-                  <Button size="sm" loading={rowAction?.id === sale.id && rowAction.action === 'cobrar'} disabled={Boolean(rowAction) || !turno} onClick={async () => {
+                  <Button size="sm" loading={rowAction?.id === sale.id && rowAction.action === 'cobrar'} disabled={Boolean(rowAction)} onClick={async () => {
                     setRowAction({ id: sale.id, action: 'cobrar' })
-                    try { await ventasService.cobrar(sale.id, [{ metodo: 'efectivo', monto: Number(sale.total) }]); setWaitingSales((current) => current.filter((item) => item.id !== sale.id)) } catch (error) { setState((current) => ({ ...current, error: formatServiceError(error) })) } finally { setRowAction(null) }
+                    try { await ventasService.cobrar(sale.id, [{ metodo: 'efectivo', monto: Number(sale.total) }]); setWaitingSales((current) => current.filter((item) => item.id !== sale.id)) } catch (error) { setState((current) => ({ ...current, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) })) } finally { setRowAction(null) }
                   }}>Cobrar</Button>
                   <Button size="sm" variant="outline" loading={rowAction?.id === sale.id && rowAction.action === 'descartar'} disabled={Boolean(rowAction)} onClick={async () => {
                     setRowAction({ id: sale.id, action: 'descartar' })
-                    try { await ventasService.descartar(sale.id); setWaitingSales((current) => current.filter((item) => item.id !== sale.id)) } catch (error) { setState((current) => ({ ...current, error: formatServiceError(error) })) } finally { setRowAction(null) }
+                    try { await ventasService.descartar(sale.id); setWaitingSales((current) => current.filter((item) => item.id !== sale.id)) } catch (error) { setState((current) => ({ ...current, error: error.codigo ? `${error.codigo}: ${mensajeDeError(error)}` : mensajeDeError(error) })) } finally { setRowAction(null) }
                   }}>Descartar</Button>
                 </div>
               </div>
             ))}
-            {waitingError && <div className="ventas-inline-error" role="alert">No se pudieron cargar las ventas en espera: {waitingError}</div>}
-            {!turno && waitingSales.length > 0 && <p className="ventas-loading">Abre una caja para cobrar una venta en espera.</p>}
           </section>
         </div>
 
-        <aside className="ventas-sidebar">
-          {!esAdministrador && <section className="shared-card ventas-checkout-card">
-            <div className="ventas-section-heading"><div><h2>Cobro</h2><p>Completa los datos de la venta.</p></div></div>
-            <div className="ventas-checkout-form">
-              <Field id="venta-cliente" label="Cliente (opcional)">
-                <select id="venta-cliente" value={clientId} onChange={(event) => setClientId(event.target.value)}>
-                  <option value="">Sin cliente</option>
-                  {clients.map((client) => <option key={client.id} value={client.id}>{client.nombre} - {client.numero_doc}</option>)}
-                </select>
-              </Field>
-              <div className="ventas-field-group"><span className="ventas-field-label">Comprobante</span><div className="ventas-segmented">{['boleta', 'factura'].map((value) => <button key={value} type="button" className={comprobante === value ? 'active' : ''} onClick={() => setComprobante(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></div>
-              <div className="ventas-field-group"><span className="ventas-field-label">Método de pago</span><div className="ventas-segmented payment">{paymentMethods.map((value) => <button key={value} type="button" className={method === value ? 'active' : ''} onClick={() => setMethod(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></div>
-              {method === 'efectivo' && <Field id="venta-efectivo" label="Efectivo recibido"><input id="venta-efectivo" type="number" min="0" step="0.01" value={paid} onChange={(event) => setPaid(event.target.value)} /><div className="ventas-quick-amounts">{[total, 10, 20, 50].map((amount, index) => <button type="button" key={`${amount}-${index}`} onClick={() => setPaid(String(amount))}>{index === 0 ? 'Exacto' : money(amount)}</button>)}</div></Field>}
-            </div>
-            <div className="ventas-summary"><div><span>Subtotal</span><strong>{money(total / 1.18)}</strong></div><div><span>IGV 18%</span><strong>{money(total - total / 1.18)}</strong></div>{method === 'efectivo' && <div><span>Vuelto</span><strong>{money(change)}</strong></div>}<div className="ventas-total"><span>TOTAL</span><strong>{money(total)}</strong></div></div>
-            <div className="ventas-checkout-actions"><Button fullWidth size="lg" disabled={state.saving || !cart.length || (method === 'efectivo' && cash < total)} loading={state.saving} onClick={() => submit('pagada')}>Cobrar</Button><Button fullWidth variant="outline" disabled={state.saving || !cart.length} onClick={() => submit('espera')}>Guardar en espera</Button></div>
-          </section>}
-          {esAdministrador && <section className="shared-card ventas-new-client-card">
+        {esAdministrador ? (
+          <aside className="shared-card ventas-new-client-card">
             <div className="ventas-new-client-heading">
               <span className="ventas-new-client-icon">+</span>
               <div><h2>Nuevo cliente</h2><p>Completa los datos del cliente.</p></div>
             </div>
-            {clientFormState.error && <div className="ventas-feedback error" role="alert">{clientFormState.error}</div>}
-            {clientFormState.success && <div className="ventas-feedback success" role="status">{clientFormState.success}</div>}
-            <form onSubmit={createClient} className="ventas-new-client-form">
+            <div className="ventas-new-client-form">
               <Field id="venta-cliente-tipo" label="Tipo de documento">
                 <select
                   id="venta-cliente-tipo"
@@ -320,12 +256,53 @@ export default function Ventas() {
                   onChange={(event) => setClientForm({ ...clientForm, nombre: event.target.value })}
                 />
               </Field>
-              <Button type="submit" fullWidth disabled={clientFormState.saving || !clientFormValid} loading={clientFormState.saving}>
-                Crear cliente
-              </Button>
-            </form>
-          </section>}
-        </aside>
+            </div>
+          </aside>
+        ) : <aside className="shared-card ventas-checkout-card">
+          <div className="ventas-section-heading"><div><h2>Cobro</h2><p>Completa los datos de la venta.</p></div></div>
+          <div className="ventas-checkout-form">
+            <div className="ventas-client-add">
+              <div className="ventas-new-client-heading">
+                <span className="ventas-new-client-icon">+</span>
+                <div><h2>Añadir cliente</h2><p>Opcional para esta venta.</p></div>
+              </div>
+              <div className="ventas-new-client-form">
+                <Field id="venta-cliente-tipo" label="Tipo de documento">
+                  <select
+                    id="venta-cliente-tipo"
+                    value={clientForm.tipo_doc}
+                    onChange={(event) => setClientForm({ ...clientForm, tipo_doc: event.target.value, numero_doc: '' })}
+                  >
+                    <option value="DNI">DNI</option>
+                    <option value="RUC">RUC</option>
+                  </select>
+                </Field>
+                <Field id="venta-cliente-numero" label="Número de documento" error={clientDocumentError} hint={`Ingresa ${clientDocumentLength} dígitos.`}>
+                  <input
+                    id="venta-cliente-numero"
+                    inputMode="numeric"
+                    maxLength={clientDocumentLength}
+                    value={clientForm.numero_doc}
+                    aria-invalid={Boolean(clientDocumentError)}
+                    onChange={(event) => setClientForm({ ...clientForm, numero_doc: event.target.value.replace(/\D/g, '') })}
+                  />
+                </Field>
+                <Field id="venta-cliente-nombre" label="Nombre completo">
+                  <input
+                    id="venta-cliente-nombre"
+                    value={clientForm.nombre}
+                    onChange={(event) => setClientForm({ ...clientForm, nombre: event.target.value })}
+                  />
+                </Field>
+              </div>
+            </div>
+            <div className="ventas-field-group"><span className="ventas-field-label">Comprobante</span><div className="ventas-segmented">{['boleta', 'factura'].map((value) => <button key={value} type="button" className={comprobante === value ? 'active' : ''} onClick={() => setComprobante(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></div>
+            <div className="ventas-field-group"><span className="ventas-field-label">Método de pago</span><div className="ventas-segmented payment">{paymentMethods.map((value) => <button key={value} type="button" className={method === value ? 'active' : ''} onClick={() => setMethod(value)}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></div>
+            {method === 'efectivo' && <Field id="venta-efectivo" label="Efectivo recibido"><input id="venta-efectivo" type="number" min="0" step="0.01" value={paid} onChange={(event) => setPaid(event.target.value)} /><div className="ventas-quick-amounts">{[total, 10, 20, 50].map((amount, index) => <button type="button" key={`${amount}-${index}`} onClick={() => setPaid(String(amount))}>{index === 0 ? 'Exacto' : money(amount)}</button>)}</div></Field>}
+          </div>
+          <div className="ventas-summary"><div><span>Subtotal</span><strong>{money(total / 1.18)}</strong></div><div><span>IGV 18%</span><strong>{money(total - total / 1.18)}</strong></div>{method === 'efectivo' && <div><span>Vuelto</span><strong>{money(change)}</strong></div>}<div className="ventas-total"><span>TOTAL</span><strong>{money(total)}</strong></div></div>
+          <div className="ventas-checkout-actions"><Button fullWidth size="lg" disabled={state.saving || !cart.length || (method === 'efectivo' && cash < total)} loading={state.saving} onClick={() => submit('pagada')}>Cobrar</Button><Button fullWidth variant="outline" disabled={state.saving || !cart.length} onClick={() => submit('espera')}>Guardar en espera</Button></div>
+        </aside>}
       </div>
     </div>
   )
