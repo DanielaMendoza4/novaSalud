@@ -8,6 +8,27 @@ const TOKEN_KEY = 'novasalud_token'
 const toDate = (value) => String(value).slice(0, 10)
 const formatDate = (value) => new Date(`${value}T12:00:00`)
 
+const listarDetalleVentas = async ({ desde, hasta }) => {
+  const query = `estado=pagada&desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}&limit=100`
+  const firstPage = await request(`/ventas?${query}&page=1`)
+  const sales = [...(firstPage.data || [])]
+  const totalPages = Math.ceil(Number(firstPage.total || sales.length) / 100)
+  for (let page = 2; page <= totalPages; page += 1) {
+    const response = await request(`/ventas?${query}&page=${page}`)
+    sales.push(...(response.data || []))
+  }
+  const details = await Promise.all(sales.map((sale) => request(`/ventas/${sale.id}`)))
+  return sales.map((sale, index) => {
+    const detail = details[index] || {}
+    return {
+      ...sale,
+      cliente: sale.cliente || sale.cliente_nombre || detail.cliente?.nombre || detail.cliente_nombre || 'Cliente general',
+      metodo_pago: sale.metodo_pago || detail.pagos?.[0]?.metodo || 'Sin pago',
+      unidades: (detail.items || []).reduce((sum, item) => sum + Number(item.cantidad || 0), 0)
+    }
+  })
+}
+
 const buildMockReport = ({ desde, hasta }) => {
   const sales = ventasMock.filter((sale) => sale.estado === 'pagada' && toDate(sale.fecha) >= desde && toDate(sale.fecha) <= hasta)
   const byDay = []
@@ -48,7 +69,10 @@ const buildMockReport = ({ desde, hasta }) => {
 export const reportesService = {
   obtener: ({ desde, hasta }) => useMocks
     ? mockDelay(buildMockReport({ desde, hasta }))
-    : request(`/reportes?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`),
+    : Promise.all([
+      request(`/reportes?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`),
+      listarDetalleVentas({ desde, hasta })
+    ]).then(([report, detalleVentas]) => ({ ...report, detalleVentas })),
   descargarCsv: async ({ desde, hasta }) => {
     const token = localStorage.getItem(TOKEN_KEY)
     const response = await fetch(`${API_URL}/reportes/exportar.csv?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`, {

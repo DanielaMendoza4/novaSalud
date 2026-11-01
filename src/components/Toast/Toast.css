@@ -1,3 +1,10 @@
+/* ==========================================================================
+   Componente Toast
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Contenedor
+   -------------------------------------------------------------------------- */
 .novasalud-toast-container {
   position: fixed;
   bottom: 24px;
@@ -10,6 +17,9 @@
   pointer-events: none;
 }
 
+/* --------------------------------------------------------------------------
+   Notificación
+   -------------------------------------------------------------------------- */
 .novasalud-toast {
   pointer-events: auto;
   display: flex;
@@ -19,7 +29,9 @@
   background: #ffffff;
   border-radius: 14px;
   border: 1px solid var(--border-color, #e2e8f0);
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+  box-shadow:
+    0 10px 25px -5px rgba(15, 23, 42, 0.15),
+    0 8px 10px -6px rgba(15, 23, 42, 0.05);
   animation: toast-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   transition: all 0.2s ease;
 }
@@ -35,6 +47,9 @@
   }
 }
 
+/* --------------------------------------------------------------------------
+   Contenido
+   -------------------------------------------------------------------------- */
 .toast-icon-box {
   width: 28px;
   height: 28px;
@@ -80,10 +95,13 @@
   color: #0f172a;
 }
 
-/* Variantes semánticas según Paso 12 */
+/* --------------------------------------------------------------------------
+   Variantes semánticas según Paso 12
+   -------------------------------------------------------------------------- */
 .novasalud-toast.success {
   border-left: 4px solid #10b981;
 }
+
 .novasalud-toast.success .toast-icon-box {
   background: #dcfce7;
   color: #15803d;
@@ -92,6 +110,7 @@
 .novasalud-toast.error {
   border-left: 4px solid #ef4444;
 }
+
 .novasalud-toast.error .toast-icon-box {
   background: #fee2e2;
   color: #b91c1c;
@@ -100,6 +119,7 @@
 .novasalud-toast.warning {
   border-left: 4px solid #f59e0b;
 }
+
 .novasalud-toast.warning .toast-icon-box {
   background: #fef3c7;
   color: #b45309;
@@ -108,6 +128,7 @@
 .novasalud-toast.info {
   border-left: 4px solid #0d9488;
 }
+
 .novasalud-toast.info .toast-icon-box {
   background: #f0fdfa;
   color: #0d9488;

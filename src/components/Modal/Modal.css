@@ -1,3 +1,10 @@
+/* ==========================================================================
+   Componente Modal
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Overlay
+   -------------------------------------------------------------------------- */
 .novasalud-modal-overlay {
   position: fixed;
   inset: 0;
@@ -13,10 +20,17 @@
 }
 
 @keyframes modal-overlay-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
+/* --------------------------------------------------------------------------
+   Ventana
+   -------------------------------------------------------------------------- */
 .novasalud-modal-window {
   background: #ffffff;
   border-radius: 20px;
@@ -41,12 +55,28 @@
   }
 }
 
-/* Tamaños */
-.novasalud-modal-window.sm { max-width: 420px; }
-.novasalud-modal-window.md { max-width: 560px; }
-.novasalud-modal-window.lg { max-width: 780px; }
-.novasalud-modal-window.xl { max-width: 1024px; }
+/* --------------------------------------------------------------------------
+   Tamaños
+   -------------------------------------------------------------------------- */
+.novasalud-modal-window.sm {
+  max-width: 420px;
+}
 
+.novasalud-modal-window.md {
+  max-width: 560px;
+}
+
+.novasalud-modal-window.lg {
+  max-width: 780px;
+}
+
+.novasalud-modal-window.xl {
+  max-width: 1024px;
+}
+
+/* --------------------------------------------------------------------------
+   Encabezado
+   -------------------------------------------------------------------------- */
 .modal-header {
   padding: 20px 24px;
   display: flex;
@@ -89,6 +119,9 @@
   color: #ef4444;
 }
 
+/* --------------------------------------------------------------------------
+   Cuerpo y pie
+   -------------------------------------------------------------------------- */
 .modal-body {
   padding: 24px;
   overflow-y: auto;
