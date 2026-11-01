@@ -6,6 +6,7 @@ export const usuariosDemo = [
     nombre: 'Daniel Mendoza',
     email: 'admin@novasalud.pe',
     password: 'admin123',
+    dni: '12345678',
     rol: 'admin',
     cargo: 'Administrador',
     sucursal: 'Botica Central'
@@ -15,6 +16,7 @@ export const usuariosDemo = [
     nombre: 'Lucía Torres',
     email: 'trabajador@novasalud.pe',
     password: 'trabajador123',
+    dni: '45678912',
     rol: 'trabajador',
     cargo: 'Trabajadora',
     sucursal: 'Botica Central'
