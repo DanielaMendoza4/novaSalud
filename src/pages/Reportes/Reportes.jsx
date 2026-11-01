@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Badge from '../../components/Badge/Badge'
 import Button from '../../components/Button/Button'
 import Card from '../../components/Card/Card'
+import DateRangePicker from '../../components/DateRangePicker/DateRangePicker'
 import EmptyState from '../../components/EmptyState/EmptyState'
 import PageHeader from '../../components/PageHeader/PageHeader'
 import Table from '../../components/Table/Table'
@@ -192,7 +193,7 @@ export default function Reportes() {
       <section className="reportes-filters" aria-label="Filtros de reportes">
         <div className="reportes-filter-group">
           <div className="reportes-filter-chips">{[['1', 'Hoy'], ['7', '7 días'], ['30', '30 días'], ['custom', 'Rango personalizado']].map(([value, label]) => <button key={value} type="button" className={preset === value ? 'active' : ''} onClick={() => selectPreset(value)}>{label}</button>)}</div>
-          {preset === 'custom' && <div className="reportes-date-inputs"><label>Desde<input type="date" value={range.desde} max={range.hasta} onChange={(event) => handleDate('desde', event.target.value)} /></label><label>Hasta<input type="date" value={range.hasta} min={range.desde} max={today} onChange={(event) => handleDate('hasta', event.target.value)} /></label></div>}
+          {preset === 'custom' && <DateRangePicker desde={range.desde} hasta={range.hasta} max={today} onChange={handleDate} />}
         </div>
         <div className="reportes-filter-selects">
           <label>Turno<select value={turnoFiltro} onChange={(event) => setTurnoFiltro(event.target.value)}><option value="">Todos</option><option value="mañana">1 Mañana</option><option value="tarde">2 Tarde</option><option value="noche">3 Noche</option></select></label>
@@ -207,7 +208,6 @@ export default function Reportes() {
           <Card title="Ventas de hoy" value={money(ventasHoyMonto)} subtitle={filtrandoTurnos ? 'Según filtros seleccionados' : `${Number(kpis.ventasHoy?.variacion || 0).toFixed(1)}% frente a ayer`} variant="primary" />
           <Card title="Ventas del periodo" value={money(ventasPeriodoMonto)} subtitle={`${comprobantesPeriodo} comprobantes`} variant="success" />
           <Card title="Ticket promedio" value={money(ticketPromedio)} subtitle="Por venta pagada" variant="info" />
-          <Card title="Productos en alerta" value={kpis.productosAlerta || 0} subtitle="Requieren atención" variant="warning" />
           <Card title="Diferencia de caja" value={money(diferenciaCaja)} subtitle="Sobrante / faltante" variant={diferenciaVariant} />
         </div>
         <section className="reportes-panel reportes-turnos-panel">
