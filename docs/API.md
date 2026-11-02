@@ -151,7 +151,8 @@ Otros endpoints:
 
 ### Turnos (caja)
 
-- `GET /api/trabajadores/:dni` devuelve `{ "dni": "70123456", "nombre": "..." }`, o 404 `TRABAJADOR_NO_ENCONTRADO` con su `mensaje`. Solo debe devolver esos dos campos.
+- `GET /api/turnos?page=1&limit=50&desde=2026-10-01&hasta=2026-11-01` lista los turnos desde `turnos_caja`. El admin recibe todos; el trabajador solo sus propios turnos. Incluye ventas y arqueo calculados desde `ventas` y `pagos`.
+- `GET /api/turnos/trabajadores/:dni` devuelve `{ "dni": "70123456", "nombre": "..." }` para validar el cajero autenticado.
 - `GET /api/turnos/actual` devuelve `{ "id": 7, "apertura": "...", "fondo_inicial": 100.00, "estado": "abierta", "usuario_dni": "70123456", "usuario_nombre": "...", "franja": "mañana" }` o `null`.
 - `POST /api/turnos/abrir` con `{ "fondo_inicial": 100.00, "franja": "mañana", "usuario_dni": "70123456" }`. Responde con el turno abierto, incluido `usuario_nombre`; el backend obtiene el nombre a partir del DNI.
 - `POST /api/turnos/cerrar` con `{ "efectivo_contado": 620.00 }` y responde `{ "efectivo_esperado": 620.00, "efectivo_contado": 620.00, "diferencia": 0.00 }`.
